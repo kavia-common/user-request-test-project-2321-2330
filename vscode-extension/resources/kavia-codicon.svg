@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" fill="none" viewBox="0 0 256 256">
-  <rect width="200" height="200" x="28" y="28" rx="40" fill="#2563EB"/>
-  <path d="M86 100l42 42 42-42" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="86" y="152" width="84" height="16" rx="8" fill="#F59E0B"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Simple, crisp SVG icon sized for VS Code Activity Bar (codicon-like) -->
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KAVIA">
+  <rect x="3" y="3" width="18" height="18" rx="4" fill="#2563EB" />
+  <path d="M8 7h2.2l2.1 3 2.1-3H16l-3 4.2L16 17h-2.2l-2.5-3.6L8.8 17H7l3.1-5.0L7 7z" fill="white"/>
 </svg>
