@@ -1,8 +1,8 @@
 {
-  "name": "kavia-chat",
-  "displayName": "KAVIA Chat",
+  "name": "te-copilot-chat",
+  "displayName": "Te-copilot Chat",
   "publisher": "your-publisher",
-  "description": "KAVIA Chat - VS Code sidebar chat extension scaffold.",
+  "description": "Te-copilot Chat - VS Code sidebar chat extension scaffold.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
@@ -11,14 +11,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:kaviaChat.open",
-    "onCommand:kaviaChat.sendSelection",
-    "onCommand:kaviaChat.setOpenAIKey",
-    "onCommand:kaviaChat.tools.readFile",
-    "onCommand:kaviaChat.tools.writeFile",
-    "onCommand:kaviaChat.tools.produceDiff",
-    "onCommand:kaviaChat.tools.applyDiff",
-    "onView:kaviaChat.view"
+    "onCommand:teCopilot.open",
+    "onCommand:teCopilot.sendSelection",
+    "onCommand:teCopilot.setOpenAIKey",
+    "onCommand:teCopilot.tools.readFile",
+    "onCommand:teCopilot.tools.writeFile",
+    "onCommand:teCopilot.tools.produceDiff",
+    "onCommand:teCopilot.tools.applyDiff",
+    "onView:teCopilot.view"
   ],
   "main": "./out/extension.js",
   "icon": "",
@@ -26,64 +26,64 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "kaviaChat",
-          "title": "KAVIA",
-          "icon": "resources/kavia-codicon.svg"
+          "id": "teCopilot",
+          "title": "Te-copilot",
+          "icon": "resources/te-copilot-codicon.svg"
         }
       ]
     },
     "views": {
-      "kaviaChat": [
+      "teCopilot": [
         {
           "type": "webview",
-          "id": "kaviaChat.view",
+          "id": "teCopilot.view",
           "name": "Chat",
-          "contextualTitle": "KAVIA Chat"
+          "contextualTitle": "Te-copilot Chat"
         }
       ]
     },
     "commands": [
       {
-        "command": "kaviaChat.open",
-        "title": "KAVIA Chat: Open Chat",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.open",
+        "title": "Te-copilot Chat: Open Chat",
+        "category": "Te-copilot Chat"
       },
       {
-        "command": "kaviaChat.sendSelection",
-        "title": "KAVIA Chat: Send Selection",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.sendSelection",
+        "title": "Te-copilot Chat: Send Selection",
+        "category": "Te-copilot Chat"
       },
       {
-        "command": "kaviaChat.setOpenAIKey",
-        "title": "KAVIA Chat: Set OpenAI API Key",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.setOpenAIKey",
+        "title": "Te-copilot Chat: Set OpenAI API Key",
+        "category": "Te-copilot Chat"
       },
       {
-        "command": "kaviaChat.tools.readFile",
-        "title": "KAVIA Chat Tools: Read File",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.tools.readFile",
+        "title": "Te-copilot Chat Tools: Read File",
+        "category": "Te-copilot Chat"
       },
       {
-        "command": "kaviaChat.tools.writeFile",
-        "title": "KAVIA Chat Tools: Write File (confirm)",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.tools.writeFile",
+        "title": "Te-copilot Chat Tools: Write File (confirm)",
+        "category": "Te-copilot Chat"
       },
       {
-        "command": "kaviaChat.tools.produceDiff",
-        "title": "KAVIA Chat Tools: Produce Diff",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.tools.produceDiff",
+        "title": "Te-copilot Chat Tools: Produce Diff",
+        "category": "Te-copilot Chat"
       },
       {
-        "command": "kaviaChat.tools.applyDiff",
-        "title": "KAVIA Chat Tools: Apply Diff (confirm)",
-        "category": "KAVIA Chat"
+        "command": "teCopilot.tools.applyDiff",
+        "title": "Te-copilot Chat Tools: Apply Diff (confirm)",
+        "category": "Te-copilot Chat"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "KAVIA Chat",
+      "title": "Te-copilot Chat",
       "properties": {
-        "kaviaChat.provider": {
+        "teCopilot.provider": {
           "type": "string",
           "default": "mock",
           "enum": [
@@ -100,58 +100,58 @@
           ],
           "description": "Select AI provider/agent to use for chat."
         },
-        "kaviaChat.mode": {
+        "teCopilot.mode": {
           "type": "string",
           "default": "assistant",
           "enum": ["assistant", "agent"],
           "description": "Interaction mode. Agent mode enables tool usage where available."
         },
-        "kaviaChat.temperature": {
+        "teCopilot.temperature": {
           "type": "number",
           "default": 0.2,
           "minimum": 0,
           "maximum": 2,
           "description": "Sampling temperature."
         },
-        "kaviaChat.maxTokens": {
+        "teCopilot.maxTokens": {
           "type": "number",
           "default": 1024,
           "minimum": 1,
           "description": "Maximum tokens to generate (provider specific semantics)."
         },
-        "kaviaChat.topP": {
+        "teCopilot.topP": {
           "type": "number",
           "default": 1,
           "minimum": 0,
           "maximum": 1,
           "description": "Top-p nucleus sampling parameter."
         },
-        "kaviaChat.frequencyPenalty": {
+        "teCopilot.frequencyPenalty": {
           "type": "number",
           "default": 0,
           "minimum": 0,
           "maximum": 2,
           "description": "Frequency penalty (where supported)."
         },
-        "kaviaChat.presencePenalty": {
+        "teCopilot.presencePenalty": {
           "type": "number",
           "default": 0,
           "minimum": 0,
           "maximum": 2,
           "description": "Presence penalty (where supported)."
         },
-        "kaviaChat.systemPrompt": {
+        "teCopilot.systemPrompt": {
           "type": "string",
           "default": "You are a helpful coding assistant.",
           "markdownDescription": "System prompt injected before user messages."
         },
 
-        "kaviaChat.openai.model": {
+        "teCopilot.openai.model": {
           "type": "string",
           "default": "gpt-4o-mini",
           "description": "OpenAI model identifier (e.g., gpt-4o, gpt-4o-mini, gpt-4.1-mini)."
         },
-        "kaviaChat.openai.baseURL": {
+        "teCopilot.openai.baseURL": {
           "type": "string",
           "default": "https://api.openai.com/v1",
           "markdownDescription": "Base URL for OpenAI-compatible API. Useful for proxies or Azure/OpenAI-compatible services.",
@@ -159,12 +159,12 @@
           "patternErrorMessage": "Must be a valid http(s) URL."
         },
 
-        "kaviaChat.ollama.model": {
+        "teCopilot.ollama.model": {
           "type": "string",
           "default": "llama3.1",
           "description": "Ollama model name (e.g., llama3.1, qwen2.5-coder)."
         },
-        "kaviaChat.ollama.baseURL": {
+        "teCopilot.ollama.baseURL": {
           "type": "string",
           "default": "http://localhost:11434",
           "pattern": "^https?://.*",
@@ -172,17 +172,17 @@
           "description": "Ollama server base URL."
         },
 
-        "kaviaChat.langchain.tools.enableRead": {
+        "teCopilot.langchain.tools.enableRead": {
           "type": "boolean",
           "default": false,
           "description": "Enable MCP read file tool for LangChain agent."
         },
-        "kaviaChat.langchain.tools.enableWrite": {
+        "teCopilot.langchain.tools.enableWrite": {
           "type": "boolean",
           "default": false,
           "description": "Enable MCP write file tool for LangChain agent (confirmation required)."
         },
-        "kaviaChat.langchain.tools.enableDiff": {
+        "teCopilot.langchain.tools.enableDiff": {
           "type": "boolean",
           "default": false,
           "description": "Enable MCP diff/patch tool for LangChain agent (confirmation required)."

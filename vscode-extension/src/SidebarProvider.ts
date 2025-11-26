@@ -5,7 +5,7 @@ import { getActiveEditorContext } from './context/activeEditorContext';
 import { getWorkspaceContext } from './context/workspaceContext';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  public static readonly viewId = 'kaviaChat.view';
+  public static readonly viewId = 'teCopilot.view';
 
   private _view?: vscode.WebviewView;
   private router = new MessageRouter();
@@ -31,7 +31,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         try {
           // Get model from settings (OpenAI specific)
-          const model = String(vscode.workspace.getConfiguration('kaviaChat').get('kaviaChat.openai.model') || 'gpt-4o-mini');
+          const newCfg = vscode.workspace.getConfiguration('teCopilot');
+          const oldCfg = vscode.workspace.getConfiguration('kaviaChat');
+          const model = String(newCfg.get('teCopilot.openai.model') ?? oldCfg.get('kaviaChat.openai.model') ?? 'gpt-4o-mini');
           // Start provider streaming via ChatService, merging live context
           this.chat.startStreaming({
             userText,
@@ -51,7 +53,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       })
       .on('chat:openSettings', () => {
         // Open extension settings scoped to this extension
-        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:your-publisher.kavia-chat');
+        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:your-publisher.te-copilot-chat');
       });
 
     // Listen to editor/workspace events and emit context updates to webview
@@ -102,7 +104,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   async reveal(): Promise<void> {
     if (!this._view) {
       // If not yet resolved, trigger reveal by executing the built-in command to focus our container
-      await vscode.commands.executeCommand('workbench.view.extension.kaviaChat');
+      await vscode.commands.executeCommand('workbench.view.extension.teCopilot');
       return;
     }
     this._view?.show?.(true);
@@ -135,14 +137,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KAVIA Chat</title>
+  <title>Te-copilot Chat</title>
   <link rel="stylesheet" href="${indexCss}">
 </head>
 <body>
   <div id="app" class="container">
     <header class="header">
       <div class="header-left">
-        <div class="title">KAVIA Chat</div>
+        <div class="title">Te-copilot Chat</div>
         <div class="subtitle">
           <span id="statusDot" class="status-dot idle"></span>
           <span id="statusText" aria-live="polite">Idle</span>
@@ -217,29 +219,30 @@ function getNonce(): string {
  * In future steps, read actual settings. For now, provide minimal mock config.
  */
 function getConfigSnapshot(): Record<string, unknown> {
-  const config = vscode.workspace.getConfiguration('kaviaChat');
+  const newCfg = vscode.workspace.getConfiguration('teCopilot');
+  const oldCfg = vscode.workspace.getConfiguration('kaviaChat');
   return {
-    provider: config.get('kaviaChat.provider', 'mock'),
-    mode: config.get('kaviaChat.mode', 'assistant'),
-    temperature: config.get('kaviaChat.temperature'),
-    maxTokens: config.get('kaviaChat.maxTokens'),
-    topP: config.get('kaviaChat.topP'),
-    frequencyPenalty: config.get('kaviaChat.frequencyPenalty'),
-    presencePenalty: config.get('kaviaChat.presencePenalty'),
-    systemPrompt: config.get('kaviaChat.systemPrompt'),
+    provider: newCfg.get('teCopilot.provider', oldCfg.get('kaviaChat.provider', 'mock') as string),
+    mode: newCfg.get('teCopilot.mode', oldCfg.get('kaviaChat.mode', 'assistant') as string),
+    temperature: newCfg.get('teCopilot.temperature') ?? oldCfg.get('kaviaChat.temperature'),
+    maxTokens: newCfg.get('teCopilot.maxTokens') ?? oldCfg.get('kaviaChat.maxTokens'),
+    topP: newCfg.get('teCopilot.topP') ?? oldCfg.get('kaviaChat.topP'),
+    frequencyPenalty: newCfg.get('teCopilot.frequencyPenalty') ?? oldCfg.get('kaviaChat.frequencyPenalty'),
+    presencePenalty: newCfg.get('teCopilot.presencePenalty') ?? oldCfg.get('kaviaChat.presencePenalty'),
+    systemPrompt: (newCfg.get('teCopilot.systemPrompt') ?? oldCfg.get('kaviaChat.systemPrompt')) as string | undefined,
     openai: {
-      model: config.get('kaviaChat.openai.model', 'gpt-4o-mini'),
-      baseURL: config.get('kaviaChat.openai.baseURL', 'https://api.openai.com/v1'),
+      model: newCfg.get('teCopilot.openai.model', oldCfg.get('kaviaChat.openai.model', 'gpt-4o-mini') as string),
+      baseURL: newCfg.get('teCopilot.openai.baseURL', oldCfg.get('kaviaChat.openai.baseURL', 'https://api.openai.com/v1') as string),
     },
     ollama: {
-      model: config.get('kaviaChat.ollama.model', 'llama3.1'),
-      baseURL: config.get('kaviaChat.ollama.baseURL', 'http://localhost:11434'),
+      model: newCfg.get('teCopilot.ollama.model', oldCfg.get('kaviaChat.ollama.model', 'llama3.1') as string),
+      baseURL: newCfg.get('teCopilot.ollama.baseURL', oldCfg.get('kaviaChat.ollama.baseURL', 'http://localhost:11434') as string),
     },
     langchain: {
       tools: {
-        enableRead: config.get('kaviaChat.langchain.tools.enableRead', false),
-        enableWrite: config.get('kaviaChat.langchain.tools.enableWrite', false),
-        enableDiff: config.get('kaviaChat.langchain.tools.enableDiff', false),
+        enableRead: (newCfg.get('teCopilot.langchain.tools.enableRead') ?? oldCfg.get('kaviaChat.langchain.tools.enableRead')) as boolean ?? false,
+        enableWrite: (newCfg.get('teCopilot.langchain.tools.enableWrite') ?? oldCfg.get('kaviaChat.langchain.tools.enableWrite')) as boolean ?? false,
+        enableDiff: (newCfg.get('teCopilot.langchain.tools.enableDiff') ?? oldCfg.get('kaviaChat.langchain.tools.enableDiff')) as boolean ?? false,
       }
     }
   };

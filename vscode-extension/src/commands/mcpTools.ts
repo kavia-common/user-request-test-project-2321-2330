@@ -12,19 +12,19 @@ export function ensureMcpCommandsRegistered() {
   if (registered) return;
   registered = true;
 
-  vscode.commands.registerCommand('kaviaChat.tools.readFile', async (filePath?: string) => {
+  vscode.commands.registerCommand('teCopilot.tools.readFile', async (filePath?: string) => {
     return mcpReadFile(filePath);
   });
 
-  vscode.commands.registerCommand('kaviaChat.tools.writeFile', async (filePath?: string, content?: string, options?: { append?: boolean }) => {
+  vscode.commands.registerCommand('teCopilot.tools.writeFile', async (filePath?: string, content?: string, options?: { append?: boolean }) => {
     return mcpWriteFile(filePath, content, options);
   });
 
-  vscode.commands.registerCommand('kaviaChat.tools.produceDiff', async (filePath?: string) => {
+  vscode.commands.registerCommand('teCopilot.tools.produceDiff', async (filePath?: string) => {
     return mcpProduceDiff(filePath);
   });
 
-  vscode.commands.registerCommand('kaviaChat.tools.applyDiff', async (filePath?: string, diff?: string) => {
+  vscode.commands.registerCommand('teCopilot.tools.applyDiff', async (filePath?: string, diff?: string) => {
     return mcpDiffApply(filePath, diff);
   });
 }
@@ -37,18 +37,18 @@ export async function mcpReadFile(filePath?: string): Promise<string | undefined
   try {
     const abs = await resolveWorkspacePath(filePath);
     if (!abs) {
-      vscode.window.showWarningMessage('KAVIA Chat: No file path provided or not within workspace.');
+      vscode.window.showWarningMessage('Te-copilot Chat: No file path provided or not within workspace.');
       return;
     }
     const stat = await fs.stat(abs).catch(() => null);
     if (!stat || !stat.isFile()) {
-      vscode.window.showWarningMessage('KAVIA Chat: Path is not a file.');
+      vscode.window.showWarningMessage('Te-copilot Chat: Path is not a file.');
       return;
     }
     const buf = await fs.readFile(abs, 'utf-8');
     return buf;
   } catch (e: any) {
-    vscode.window.showErrorMessage(`KAVIA Chat: Read failed - ${e?.message || e}`);
+    vscode.window.showErrorMessage(`Te-copilot Chat: Read failed - ${e?.message || e}`);
     return;
   }
 }
@@ -61,11 +61,11 @@ export async function mcpWriteFile(filePath?: string, content?: string, options?
   try {
     const abs = await resolveWorkspacePath(filePath);
     if (!abs) {
-      vscode.window.showWarningMessage('KAVIA Chat: No file path provided or not within workspace.');
+      vscode.window.showWarningMessage('Te-copilot Chat: No file path provided or not within workspace.');
       return false;
     }
     const ok = await vscode.window.showWarningMessage(
-      `KAVIA Chat: Confirm ${options?.append ? 'append to' : 'write'} file?\n${abs}`,
+      `Te-copilot Chat: Confirm ${options?.append ? 'append to' : 'write'} file?\n${abs}`,
       { modal: true },
       'Yes'
     );
@@ -79,7 +79,7 @@ export async function mcpWriteFile(filePath?: string, content?: string, options?
     }
     return true;
   } catch (e: any) {
-    vscode.window.showErrorMessage(`KAVIA Chat: Write failed - ${e?.message || e}`);
+    vscode.window.showErrorMessage(`Te-copilot Chat: Write failed - ${e?.message || e}`);
     return false;
   }
 }
@@ -95,7 +95,7 @@ export async function mcpProduceDiff(filePath?: string): Promise<string | undefi
     return;
   }
   const before = (await fs.readFile(abs, 'utf-8').catch(() => '')) ?? '';
-  const header = `// Updated by KAVIA Chat at ${new Date().toISOString()}\n`;
+  const header = `// Updated by Te-copilot Chat at ${new Date().toISOString()}\n`;
   const after = before.startsWith(header) ? before : header + before;
 
   // Very minimal unified-like diff header for display only
@@ -121,7 +121,7 @@ export async function mcpDiffApply(filePath?: string, diff?: string): Promise<bo
     return false;
   }
   const ok = await vscode.window.showWarningMessage(
-    `KAVIA Chat: Apply proposed diff to ${abs}?`,
+    `Te-copilot Chat: Apply proposed diff to ${abs}?`,
     { modal: true },
     'Apply'
   );

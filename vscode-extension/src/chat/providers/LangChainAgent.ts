@@ -26,16 +26,17 @@ export class LangChainAgent implements ChatProvider {
   private readonly enableDiff: boolean;
 
   constructor() {
-    const config = vscode.workspace.getConfiguration('kaviaChat');
-    this.temperature = config.get<number>('kaviaChat.temperature');
-    this.maxTokens = config.get<number>('kaviaChat.maxTokens');
-    this.topP = config.get<number>('kaviaChat.topP');
-    this.frequencyPenalty = config.get<number>('kaviaChat.frequencyPenalty');
-    this.presencePenalty = config.get<number>('kaviaChat.presencePenalty');
-    this.systemPrompt = config.get<string>('kaviaChat.systemPrompt') || 'You are a helpful coding assistant.';
-    this.enableRead = !!config.get<boolean>('kaviaChat.langchain.tools.enableRead');
-    this.enableWrite = !!config.get<boolean>('kaviaChat.langchain.tools.enableWrite');
-    this.enableDiff = !!config.get<boolean>('kaviaChat.langchain.tools.enableDiff');
+    const newCfg = vscode.workspace.getConfiguration('teCopilot');
+    const oldCfg = vscode.workspace.getConfiguration('kaviaChat');
+    this.temperature = (newCfg.get<number>('teCopilot.temperature') ?? oldCfg.get<number>('kaviaChat.temperature')) as number | undefined;
+    this.maxTokens = (newCfg.get<number>('teCopilot.maxTokens') ?? oldCfg.get<number>('kaviaChat.maxTokens')) as number | undefined;
+    this.topP = (newCfg.get<number>('teCopilot.topP') ?? oldCfg.get<number>('kaviaChat.topP')) as number | undefined;
+    this.frequencyPenalty = (newCfg.get<number>('teCopilot.frequencyPenalty') ?? oldCfg.get<number>('kaviaChat.frequencyPenalty')) as number | undefined;
+    this.presencePenalty = (newCfg.get<number>('teCopilot.presencePenalty') ?? oldCfg.get<number>('kaviaChat.presencePenalty')) as number | undefined;
+    this.systemPrompt = (newCfg.get<string>('teCopilot.systemPrompt') ?? oldCfg.get<string>('kaviaChat.systemPrompt')) || 'You are a helpful coding assistant.';
+    this.enableRead = !!(newCfg.get<boolean>('teCopilot.langchain.tools.enableRead') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableRead'));
+    this.enableWrite = !!(newCfg.get<boolean>('teCopilot.langchain.tools.enableWrite') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableWrite'));
+    this.enableDiff = !!(newCfg.get<boolean>('teCopilot.langchain.tools.enableDiff') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableDiff'));
 
     // Ensure commands exist
     ensureMcpCommandsRegistered();

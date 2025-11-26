@@ -65,9 +65,10 @@ export class ChatService {
    * Initialize provider/agent selection based on current settings and secrets.
    */
   private async initProvider(): Promise<{ error?: string }> {
-    const cfg = vscode.workspace.getConfiguration('kaviaChat');
-    const providerId = (cfg.get<string>('kaviaChat.provider') || 'mock').toLowerCase();
-    const mode = (cfg.get<string>('kaviaChat.mode') || 'assistant').toLowerCase();
+    const newCfg = vscode.workspace.getConfiguration('teCopilot');
+    const oldCfg = vscode.workspace.getConfiguration('kaviaChat');
+    const providerId = ((newCfg.get<string>('teCopilot.provider') ?? oldCfg.get<string>('kaviaChat.provider') ?? 'mock')).toLowerCase();
+    const mode = ((newCfg.get<string>('teCopilot.mode') ?? oldCfg.get<string>('kaviaChat.mode') ?? 'assistant')).toLowerCase();
 
     // Agent mode currently only available for langchain selection; otherwise behave like assistant
     if (providerId === 'langchain') {
@@ -76,14 +77,14 @@ export class ChatService {
     }
 
     if (providerId === 'ollama') {
-      const baseURL = cfg.get<string>('kaviaChat.ollama.baseURL') || 'http://localhost:11434';
-      const model = cfg.get<string>('kaviaChat.ollama.model') || 'llama3.1';
-      const temperature = cfg.get<number>('kaviaChat.temperature');
-      const maxTokens = cfg.get<number>('kaviaChat.maxTokens');
-      const topP = cfg.get<number>('kaviaChat.topP');
-      const frequencyPenalty = cfg.get<number>('kaviaChat.frequencyPenalty');
-      const presencePenalty = cfg.get<number>('kaviaChat.presencePenalty');
-      const systemPrompt = cfg.get<string>('kaviaChat.systemPrompt') || undefined;
+      const baseURL = newCfg.get<string>('teCopilot.ollama.baseURL') ?? oldCfg.get<string>('kaviaChat.ollama.baseURL') ?? 'http://localhost:11434';
+      const model = newCfg.get<string>('teCopilot.ollama.model') ?? oldCfg.get<string>('kaviaChat.ollama.model') ?? 'llama3.1';
+      const temperature = (newCfg.get<number>('teCopilot.temperature') ?? oldCfg.get<number>('kaviaChat.temperature')) as number | undefined;
+      const maxTokens = (newCfg.get<number>('teCopilot.maxTokens') ?? oldCfg.get<number>('kaviaChat.maxTokens')) as number | undefined;
+      const topP = (newCfg.get<number>('teCopilot.topP') ?? oldCfg.get<number>('kaviaChat.topP')) as number | undefined;
+      const frequencyPenalty = (newCfg.get<number>('teCopilot.frequencyPenalty') ?? oldCfg.get<number>('kaviaChat.frequencyPenalty')) as number | undefined;
+      const presencePenalty = (newCfg.get<number>('teCopilot.presencePenalty') ?? oldCfg.get<number>('kaviaChat.presencePenalty')) as number | undefined;
+      const systemPrompt = (newCfg.get<string>('teCopilot.systemPrompt') ?? oldCfg.get<string>('kaviaChat.systemPrompt')) || undefined;
       this.provider = new OllamaProvider({
         baseURL, model, temperature, maxTokens, topP, frequencyPenalty, presencePenalty, systemPrompt
       });
@@ -94,17 +95,20 @@ export class ChatService {
       // Read key from SecretStorage first, fallback to env var
       let key: string | undefined;
       try {
-        key = await ChatService.extContext?.secrets.get('kaviaChat.openai.apiKey');
+        key = await ChatService.extContext?.secrets.get('teCopilot.openai.apiKey');
+        if (!key) {
+          key = await ChatService.extContext?.secrets.get('kaviaChat.openai.apiKey');
+        }
       } catch { /* ignore */ }
       if (!key) {
         key = process.env.OPENAI_API_KEY;
       }
       if (!key) {
         this.provider = new MockProvider();
-        return { error: 'OpenAI API key is not set. Run "KAVIA Chat: Set OpenAI API Key" or set OPENAI_API_KEY env var.' };
+        return { error: 'OpenAI API key is not set. Run "Te-copilot Chat: Set OpenAI API Key" or set OPENAI_API_KEY env var.' };
       }
-      const baseURL = cfg.get<string>('kaviaChat.openai.baseURL') || 'https://api.openai.com/v1';
-      const model = cfg.get<string>('kaviaChat.openai.model') || 'gpt-4o-mini';
+      const baseURL = newCfg.get<string>('teCopilot.openai.baseURL') ?? oldCfg.get<string>('kaviaChat.openai.baseURL') ?? 'https://api.openai.com/v1';
+      const model = newCfg.get<string>('teCopilot.openai.model') ?? oldCfg.get<string>('kaviaChat.openai.model') ?? 'gpt-4o-mini';
       try {
         this.provider = new OpenAIProvider({ apiKey: key, baseURL, model });
         return {};
@@ -167,12 +171,13 @@ export class ChatService {
       }
 
       // Decide model: prefer explicit param; otherwise provider-specific setting fallback
-      const cfg = vscode.workspace.getConfiguration('kaviaChat');
-      const providerId = (cfg.get<string>('kaviaChat.provider') || 'mock').toLowerCase();
+      const newCfg2 = vscode.workspace.getConfiguration('teCopilot');
+      const oldCfg2 = vscode.workspace.getConfiguration('kaviaChat');
+      const providerId = ((newCfg2.get<string>('teCopilot.provider') ?? oldCfg2.get<string>('kaviaChat.provider') ?? 'mock')).toLowerCase();
       let resolvedModel = model;
       if (!resolvedModel) {
-        if (providerId === 'openai') resolvedModel = cfg.get<string>('kaviaChat.openai.model') || 'gpt-4o-mini';
-        if (providerId === 'ollama') resolvedModel = cfg.get<string>('kaviaChat.ollama.model') || 'llama3.1';
+        if (providerId === 'openai') resolvedModel = newCfg2.get<string>('teCopilot.openai.model') ?? oldCfg2.get<string>('kaviaChat.openai.model') ?? 'gpt-4o-mini';
+        if (providerId === 'ollama') resolvedModel = newCfg2.get<string>('teCopilot.ollama.model') ?? oldCfg2.get<string>('kaviaChat.ollama.model') ?? 'llama3.1';
       }
 
       try {
