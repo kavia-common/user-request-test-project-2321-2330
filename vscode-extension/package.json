@@ -1,11 +1,11 @@
 {
   "name": "te-copilot-chat",
   "displayName": "TE-Copilot Chat",
-  "publisher": "your-publisher",
+  "publisher": "te-copilot",
   "description": "TE-Copilot Chat - VS Code sidebar chat extension scaffold.",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.84.0"
   },
   "categories": [
     "Other"
