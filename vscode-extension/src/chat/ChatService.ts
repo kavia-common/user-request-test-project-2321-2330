@@ -68,8 +68,44 @@ export class ChatService {
     const primary = vscode.workspace.getConfiguration('teCopilot');
     const legacyCopilo = vscode.workspace.getConfiguration('teCopilo');
     const oldCfg = vscode.workspace.getConfiguration('kaviaChat');
-    const providerId = ((primary.get<string>('teCopilot.provider') ?? legacyCopilo.get<string>('teCopilo.provider') ?? oldCfg.get<string>('kaviaChat.provider') ?? 'mock')).toLowerCase();
-    const mode = ((primary.get<string>('teCopilot.mode') ?? legacyCopilo.get<string>('teCopilo.mode') ?? oldCfg.get<string>('kaviaChat.mode') ?? 'assistant')).toLowerCase();
+
+    const providerId = (
+      primary.get<string>('teCopilot.provider')
+      ?? legacyCopilo.get<string>('teCopilo.provider')
+      ?? oldCfg.get<string>('kaviaChat.provider')
+      ?? 'mock'
+    ).toLowerCase();
+
+    // common generation defaults if unset
+    const temperature = primary.get<number>('teCopilot.temperature')
+      ?? legacyCopilo.get<number>('teCopilo.temperature')
+      ?? oldCfg.get<number>('kaviaChat.temperature')
+      ?? 0.2;
+
+    const maxTokens = primary.get<number>('teCopilot.maxTokens')
+      ?? legacyCopilo.get<number>('teCopilo.maxTokens')
+      ?? oldCfg.get<number>('kaviaChat.maxTokens')
+      ?? 1024;
+
+    const topP = primary.get<number>('teCopilot.topP')
+      ?? legacyCopilo.get<number>('teCopilo.topP')
+      ?? oldCfg.get<number>('kaviaChat.topP')
+      ?? 1;
+
+    const frequencyPenalty = primary.get<number>('teCopilot.frequencyPenalty')
+      ?? legacyCopilo.get<number>('teCopilo.frequencyPenalty')
+      ?? oldCfg.get<number>('kaviaChat.frequencyPenalty')
+      ?? 0;
+
+    const presencePenalty = primary.get<number>('teCopilot.presencePenalty')
+      ?? legacyCopilo.get<number>('teCopilo.presencePenalty')
+      ?? oldCfg.get<number>('kaviaChat.presencePenalty')
+      ?? 0;
+
+    const systemPrompt = primary.get<string>('teCopilot.systemPrompt')
+      ?? legacyCopilo.get<string>('teCopilo.systemPrompt')
+      ?? oldCfg.get<string>('kaviaChat.systemPrompt')
+      ?? 'You are a concise, helpful coding assistant. Prefer brevity, show minimal necessary code, and ask for missing details when required.';
 
     // Agent mode currently only available for langchain selection; otherwise behave like assistant
     if (providerId === 'langchain') {
@@ -78,14 +114,16 @@ export class ChatService {
     }
 
     if (providerId === 'ollama') {
-      const baseURL = primary.get<string>('teCopilot.ollama.baseURL') ?? legacyCopilo.get<string>('teCopilo.ollama.baseURL') ?? oldCfg.get<string>('kaviaChat.ollama.baseURL') ?? 'http://localhost:11434';
-      const model = primary.get<string>('teCopilot.ollama.model') ?? legacyCopilo.get<string>('teCopilo.ollama.model') ?? oldCfg.get<string>('kaviaChat.ollama.model') ?? 'llama3.1';
-      const temperature = (primary.get<number>('teCopilot.temperature') ?? legacyCopilo.get<number>('teCopilo.temperature') ?? oldCfg.get<number>('kaviaChat.temperature')) as number | undefined;
-      const maxTokens = (primary.get<number>('teCopilot.maxTokens') ?? legacyCopilo.get<number>('teCopilo.maxTokens') ?? oldCfg.get<number>('kaviaChat.maxTokens')) as number | undefined;
-      const topP = (primary.get<number>('teCopilot.topP') ?? legacyCopilo.get<number>('teCopilo.topP') ?? oldCfg.get<number>('kaviaChat.topP')) as number | undefined;
-      const frequencyPenalty = (primary.get<number>('teCopilot.frequencyPenalty') ?? legacyCopilo.get<number>('teCopilo.frequencyPenalty') ?? oldCfg.get<number>('kaviaChat.frequencyPenalty')) as number | undefined;
-      const presencePenalty = (primary.get<number>('teCopilot.presencePenalty') ?? legacyCopilo.get<number>('teCopilo.presencePenalty') ?? oldCfg.get<number>('kaviaChat.presencePenalty')) as number | undefined;
-      const systemPrompt = (primary.get<string>('teCopilot.systemPrompt') ?? legacyCopilo.get<string>('teCopilo.systemPrompt') ?? oldCfg.get<string>('kaviaChat.systemPrompt')) || undefined;
+      const baseURL = primary.get<string>('teCopilot.ollama.baseURL')
+        ?? legacyCopilo.get<string>('teCopilo.ollama.baseURL')
+        ?? oldCfg.get<string>('kaviaChat.ollama.baseURL')
+        ?? 'http://127.0.0.1:11434';
+
+      const model = primary.get<string>('teCopilot.ollama.model')
+        ?? legacyCopilo.get<string>('teCopilo.ollama.model')
+        ?? oldCfg.get<string>('kaviaChat.ollama.model')
+        ?? 'llama3';
+
       this.provider = new OllamaProvider({
         baseURL, model, temperature, maxTokens, topP, frequencyPenalty, presencePenalty, systemPrompt
       });
@@ -97,22 +135,26 @@ export class ChatService {
       let key: string | undefined;
       try {
         key = await ChatService.extContext?.secrets.get('teCopilot.openai.apiKey');
-        if (!key) {
-          key = await ChatService.extContext?.secrets.get('teCopilo.openai.apiKey');
-        }
-        if (!key) {
-          key = await ChatService.extContext?.secrets.get('kaviaChat.openai.apiKey');
-        }
+        if (!key) key = await ChatService.extContext?.secrets.get('teCopilo.openai.apiKey');
+        if (!key) key = await ChatService.extContext?.secrets.get('kaviaChat.openai.apiKey');
       } catch { /* ignore */ }
-      if (!key) {
-        key = process.env.OPENAI_API_KEY;
-      }
+      if (!key) key = process.env.OPENAI_API_KEY;
+
       if (!key) {
         this.provider = new MockProvider();
         return { error: 'OpenAI API key is not set. Run "TE-Copilot: Set OpenAI API Key" or set OPENAI_API_KEY env var.' };
       }
-      const baseURL = primary.get<string>('teCopilot.openai.baseURL') ?? legacyCopilo.get<string>('teCopilo.openai.baseURL') ?? oldCfg.get<string>('kaviaChat.openai.baseURL') ?? 'https://api.openai.com/v1';
-      const model = primary.get<string>('teCopilot.openai.model') ?? legacyCopilo.get<string>('teCopilo.openai.model') ?? oldCfg.get<string>('kaviaChat.openai.model') ?? 'gpt-4o-mini';
+
+      const baseURL = primary.get<string>('teCopilot.openai.baseURL')
+        ?? legacyCopilo.get<string>('teCopilo.openai.baseURL')
+        ?? oldCfg.get<string>('kaviaChat.openai.baseURL')
+        ?? '';
+
+      const model = primary.get<string>('teCopilot.openai.model')
+        ?? legacyCopilo.get<string>('teCopilo.openai.model')
+        ?? oldCfg.get<string>('kaviaChat.openai.model')
+        ?? 'gpt-4o-mini';
+
       try {
         this.provider = new OpenAIProvider({ apiKey: key, baseURL, model });
         return {};
@@ -181,8 +223,18 @@ export class ChatService {
       const providerId = ((cfg2.get<string>('teCopilot.provider') ?? legacyCopilo2.get<string>('teCopilo.provider') ?? oldCfg2.get<string>('kaviaChat.provider') ?? 'mock')).toLowerCase();
       let resolvedModel = model;
       if (!resolvedModel) {
-        if (providerId === 'openai') resolvedModel = cfg2.get<string>('teCopilot.openai.model') ?? legacyCopilo2.get<string>('teCopilo.openai.model') ?? oldCfg2.get<string>('kaviaChat.openai.model') ?? 'gpt-4o-mini';
-        if (providerId === 'ollama') resolvedModel = cfg2.get<string>('teCopilot.ollama.model') ?? legacyCopilo2.get<string>('teCopilo.ollama.model') ?? oldCfg2.get<string>('kaviaChat.ollama.model') ?? 'llama3.1';
+        if (providerId === 'openai') {
+          resolvedModel = cfg2.get<string>('teCopilot.openai.model')
+            ?? legacyCopilo2.get<string>('teCopilo.openai.model')
+            ?? oldCfg2.get<string>('kaviaChat.openai.model')
+            ?? 'gpt-4o-mini';
+        }
+        if (providerId === 'ollama') {
+          resolvedModel = cfg2.get<string>('teCopilot.ollama.model')
+            ?? legacyCopilo2.get<string>('teCopilo.ollama.model')
+            ?? oldCfg2.get<string>('kaviaChat.ollama.model')
+            ?? 'llama3';
+        }
       }
 
       try {

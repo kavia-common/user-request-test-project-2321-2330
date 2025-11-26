@@ -55,7 +55,7 @@ All settings live under the `teCopilot.*` namespace with sensible defaults. TE-C
 - `teCopilot.topP` (number; default: 1): Nucleus sampling parameter if supported.
 - `teCopilot.frequencyPenalty` (number; default: 0): Frequency penalty if supported.
 - `teCopilot.presencePenalty` (number; default: 0): Presence penalty if supported.
-- `teCopilot.systemPrompt` (string; default: “You are a helpful coding assistant.”): System prompt prefixed to conversations when supported.
+- `teCopilot.systemPrompt` (string; default: “You are a concise, helpful coding assistant. Prefer brevity, show minimal necessary code, and ask for missing details when required.”): System prompt prefixed to conversations when supported.
 
 Example user settings JSON:
 ```json
@@ -70,7 +70,7 @@ Example user settings JSON:
 
 ### OpenAI-compatible
 - `teCopilot.openai.model` (string; default: `gpt-4o-mini`): Model name.
-- `teCopilot.openai.baseURL` (string; default: `https://api.openai.com/v1`): Base URL for OpenAI-compatible endpoints.
+- `teCopilot.openai.baseURL` (string; default: ``): Base URL override for OpenAI-compatible endpoints. Leave empty to use the default `https://api.openai.com/v1`. Useful for proxies or Azure/OpenAI-compatible services.
 
 API key handling:
 - Run `TE-Copilot: Set OpenAI API Key` to store your key in VS Code Secret Storage (`teCopilot.openai.apiKey`).
@@ -81,20 +81,20 @@ Example:
 {
   "teCopilot.provider": "openai",
   "teCopilot.openai.model": "gpt-4o-mini",
-  "teCopilot.openai.baseURL": "https://api.openai.com/v1"
+  "teCopilot.openai.baseURL": ""
 }
 ```
 
 ### Ollama (local)
-- `teCopilot.ollama.model` (string; default: `llama3.1`): Local model tag.
-- `teCopilot.ollama.baseURL` (string; default: `http://localhost:11434`): Your local Ollama server.
+- `teCopilot.ollama.model` (string; default: `llama3`): Local model tag.
+- `teCopilot.ollama.baseURL` (string; default: `http://127.0.0.1:11434`): Your local Ollama server.
 
 Example:
 ```json
 {
   "teCopilot.provider": "ollama",
-  "teCopilot.ollama.model": "llama3.1",
-  "teCopilot.ollama.baseURL": "http://localhost:11434"
+  "teCopilot.ollama.model": "llama3",
+  "teCopilot.ollama.baseURL": "http://127.0.0.1:11434"
 }
 ```
 

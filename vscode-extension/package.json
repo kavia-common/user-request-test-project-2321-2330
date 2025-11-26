@@ -142,7 +142,7 @@
         },
         "teCopilot.systemPrompt": {
           "type": "string",
-          "default": "You are a helpful coding assistant.",
+          "default": "You are a concise, helpful coding assistant. Prefer brevity, show minimal necessary code, and ask for missing details when required.",
           "markdownDescription": "System prompt injected before user messages."
         },
 
@@ -153,20 +153,20 @@
         },
         "teCopilot.openai.baseURL": {
           "type": "string",
-          "default": "https://api.openai.com/v1",
-          "markdownDescription": "Base URL for OpenAI-compatible API. Useful for proxies or Azure/OpenAI-compatible services.",
-          "pattern": "^https?://.*",
-          "patternErrorMessage": "Must be a valid http(s) URL."
+          "default": "",
+          "markdownDescription": "Base URL for OpenAI-compatible API. Leave empty to use the SDK/API default. Useful for proxies or Azure/OpenAI-compatible services.",
+          "pattern": "^$|^https?://.*",
+          "patternErrorMessage": "Must be empty or a valid http(s) URL."
         },
 
         "teCopilot.ollama.model": {
           "type": "string",
-          "default": "llama3.1",
-          "description": "Ollama model name (e.g., llama3.1, qwen2.5-coder)."
+          "default": "llama3",
+          "description": "Ollama model name (e.g., llama3, llama3.1, qwen2.5-coder)."
         },
         "teCopilot.ollama.baseURL": {
           "type": "string",
-          "default": "http://localhost:11434",
+          "default": "http://127.0.0.1:11434",
           "pattern": "^https?://.*",
           "patternErrorMessage": "Must be a valid http(s) URL.",
           "description": "Ollama server base URL."

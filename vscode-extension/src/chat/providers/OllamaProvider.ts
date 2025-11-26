@@ -29,8 +29,8 @@ export class OllamaProvider implements ChatProvider {
     presencePenalty?: number;
     systemPrompt?: string;
   }) {
-    this.baseURL = (opts.baseURL || 'http://localhost:11434').replace(/\/+$/, '');
-    this.model = opts.model || 'llama3.1';
+    this.baseURL = (opts.baseURL || 'http://127.0.0.1:11434').replace(/\/+$/, '');
+    this.model = opts.model || 'llama3';
     this.temperature = opts.temperature;
     this.maxTokens = opts.maxTokens;
     this.topP = opts.topP;

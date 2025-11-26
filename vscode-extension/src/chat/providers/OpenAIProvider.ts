@@ -20,7 +20,9 @@ export class OpenAIProvider implements ChatProvider {
       throw new Error('Missing OpenAI API key');
     }
     this.apiKey = opts.apiKey;
-    this.baseURL = (opts.baseURL || 'https://api.openai.com/v1').replace(/\/+$/, '');
+    // Allow empty string to mean "use provider default"
+    const base = (opts.baseURL ?? '').trim();
+    this.baseURL = (base === '' ? 'https://api.openai.com/v1' : base).replace(/\/+$/, '');
     this.model = opts.model || 'gpt-4o-mini';
   }
 
