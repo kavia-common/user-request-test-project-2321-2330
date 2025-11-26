@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { ExtensionToWebviewMessage, MessageRouter, WebviewToExtensionMessage, postToWebview } from './messaging';
+import { ChatService } from './chat/ChatService';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewId = 'kaviaChat.view';
 
   private _view?: vscode.WebviewView;
   private router = new MessageRouter();
+  private chat = ChatService.getInstance();
 
   constructor(private readonly context: vscode.ExtensionContext) {
     // Register router handlers
@@ -18,7 +20,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         postToWebview(webviewView, { type: 'context:update', context });
       })
       .on('chat:send', (message, webviewView) => {
-        // For now, mock a streaming response in chunks to simulate provider.
         const payload = (message as Extract<WebviewToExtensionMessage, { type: 'chat:send' }>).payload;
         const userText = (payload?.text || '').trim();
         if (!userText) {
@@ -26,32 +27,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           return;
         }
 
-        // Simulate streaming by splitting words
-        const reply = `You said: ${userText}\n\n(MOCK RESPONSE)`;
-        const chunks = reply.split(/(\s+)/); // keep spaces
-        let idx = 0;
-
-        const interval = setInterval(() => {
-          const view = this._view;
-          if (!view) {
-            clearInterval(interval);
-            return;
-          }
-          if (idx < chunks.length) {
-            postToWebview(view, { type: 'chat:response', delta: chunks[idx] });
-            idx++;
-          } else {
-            clearInterval(interval);
-            postToWebview(view, { type: 'chat:response', done: true });
-          }
-        }, 50);
+        try {
+          // Get model from settings
+          const model = String(vscode.workspace.getConfiguration('kaviaChat').get('kaviaChat.model') || 'gpt-4o-mini');
+          // Start provider streaming via ChatService
+          this.chat.startStreaming({
+            userText,
+            config: payload?.config,
+            context: payload?.context,
+            model,
+            webviewView: this._view,
+          });
+        } catch (e) {
+          console.error('chat:send failed', e);
+          postToWebview(webviewView, { type: 'chat:error', error: 'Failed to start chat' });
+        }
       })
-      .on('chat:stop', (_message, _webviewView) => {
-        // In a real provider, signal cancellation. Here we just acknowledge.
-        // Since our mock uses setInterval above, it will stop on view loss only;
-        // a real implementation would keep a handle to clear on stop.
-        // Inform webview generation is stopped.
-        postToWebview(this._view, { type: 'chat:response', done: true });
+      .on('chat:stop', (_message, webviewView) => {
+        // Signal cancellation to provider via ChatService
+        this.chat.stop(this._view);
       })
       .on('chat:openSettings', () => {
         // Open extension settings scoped to this extension
@@ -111,12 +105,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const nonce = getNonce();
 
     const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview');
-
-    const indexHtml = vscode.Uri.joinPath(mediaRoot, 'index.html');
-    const indexHtmlUri = webview.asWebviewUri(indexHtml);
-    // We'll inline the HTML template here to preserve CSP nonce assignment to the script tag,
-    // because the static index.html in media includes a plain <script> without nonce.
-    // Instead, we reconstruct a similar structure with proper asset URIs and nonce.
 
     const indexCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'styles.css'));
     const appJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'app.js'));
