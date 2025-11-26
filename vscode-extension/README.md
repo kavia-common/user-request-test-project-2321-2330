@@ -1,15 +1,19 @@
 # TE-Copilot Chat (VS Code Extension)
 
-TE-Copilot is a VS Code sidebar chat extension that provides an AI-powered assistant and an optional agent mode. It supports multiple model providers, a secure webview chat UI, live editor/workspace context, and a set of MCP-like tools for safe file operations.
+TE-Copilot is a VS Code sidebar chat extension with a pure, vanilla Webview UI (no React). It supports multiple model providers, a secure webview chat UI, live editor/workspace context, and a set of MCP-like tools for safe file operations.
 
 ## Overview
 
-TE-Copilot adds an Activity Bar container named “TE-Copilot” with a “Chat” view (view id: `teCopilot.view`). The chat UI streams assistant responses, supports cancellation, and can incorporate live context from your active editor and workspace. You can choose from several providers (mock, OpenAI, Ollama, lightweight LangChain agent) and configure behavior via the `teCopilot.*` settings namespace.
+TE-Copilot adds an Activity Bar container named “TE-Copilot” with a “Chat” view (view id: `teCopilot.view`). The chat UI is implemented as a simple HTML/CSS/JS webview (index.html + styles.css + app.js, no bundler) and streams assistant responses, supports cancellation, and can incorporate live context from your active editor and workspace. You can choose from several providers (mock, OpenAI, Ollama, lightweight LangChain agent) and configure behavior via the `teCopilot.*` settings namespace.
 
 ## Features
 
 - TE-Copilot Activity Bar container with a Chat webview
-- Secure webview with a strict CSP and script nonce
+- Vanilla Webview UI (no React) using:
+  - media/webview/index.html
+  - media/webview/styles.css
+  - media/webview/app.js
+- Strict CSP with a script nonce injected by the extension (no inline scripts without nonce)
 - Streaming responses with cancel support and graceful completion
 - Live context gathering and automatic updates from:
   - Active editor (file name, language id, selection, cursor, visible range)
@@ -33,8 +37,12 @@ TE-Copilot adds an Activity Bar container named “TE-Copilot” with a “Chat�
 ### For developers
 1. Open this folder in VS Code: `user-request-test-project-2321-2330/vscode-extension`
 2. Run `npm install`
-3. Build the extension: `npm run compile`
+3. Build the extension TypeScript only: `npm run compile`
 4. Start a new Extension Development Host: press F5 (or Run > Start Debugging)
+
+Notes:
+- There are no React/webpack/vite build steps for the webview. The webview assets are shipped as static files.
+- Debug/launch only compiles the extension TS under `src/` and serves the static webview files from `media/webview/`.
 
 ## Running and Debugging
 
@@ -76,27 +84,9 @@ API key handling:
 - Run `TE-Copilot: Set OpenAI API Key` to store your key in VS Code Secret Storage (`teCopilot.openai.apiKey`).
 - Alternatively, set environment variable `OPENAI_API_KEY` in the Extension Host environment.
 
-Example:
-```json
-{
-  "teCopilot.provider": "openai",
-  "teCopilot.openai.model": "gpt-4o-mini",
-  "teCopilot.openai.baseURL": ""
-}
-```
-
 ### Ollama (local)
 - `teCopilot.ollama.model` (string; default: `llama3`): Local model tag.
 - `teCopilot.ollama.baseURL` (string; default: `http://127.0.0.1:11434`): Your local Ollama server.
-
-Example:
-```json
-{
-  "teCopilot.provider": "ollama",
-  "teCopilot.ollama.model": "llama3",
-  "teCopilot.ollama.baseURL": "http://127.0.0.1:11434"
-}
-```
 
 ### LangChain Agent (lightweight)
 Select `teCopilot.provider = "langchain"` and optionally `teCopilot.mode = "agent"` to enable tool-augmented behavior. Tools are disabled by default and must be explicitly enabled.
@@ -105,87 +95,38 @@ Select `teCopilot.provider = "langchain"` and optionally `teCopilot.mode = "agen
 - `teCopilot.langchain.tools.enableWrite` (boolean; default: false): Enable write file tool. Each write prompts for confirmation.
 - `teCopilot.langchain.tools.enableDiff` (boolean; default: false): Enable diff produce/apply. Apply prompts for confirmation.
 
-Example:
-```json
-{
-  "teCopilot.provider": "langchain",
-  "teCopilot.mode": "agent",
-  "teCopilot.langchain.tools.enableRead": true,
-  "teCopilot.langchain.tools.enableWrite": true,
-  "teCopilot.langchain.tools.enableDiff": true
-}
-```
-
 ## Providers
 
-The extension includes multiple providers, selectable via `teCopilot.provider`.
+The extension includes multiple providers, selectable via `teCopilot.provider`:
+- MockProvider (no external services)
+- OpenAIProvider (SSE streaming via OpenAI-compatible API)
+- OllamaProvider (local Ollama)
+- LangChainAgent (lightweight agent with optional tools)
 
-- MockProvider: Useful for development and testing the UX and streaming behavior without any external service. It echoes back your input.
-- OpenAIProvider: Streams chat completions from an OpenAI-compatible API using SSE. Requires an API key and supports a configurable base URL and model.
-- OllamaProvider: Streams chat completions from a local Ollama server. Configure the base URL and model accordingly.
-- LangChainAgent: A minimal, built-in agent-like provider that can optionally use MCP-like tools for read, write, diff operations. It streams agent traces and prompts for confirmations on sensitive actions.
+## Webview Chat UI (Vanilla)
 
-## Agent Mode and MCP-like Tools
-
-When using the `langchain` provider with `teCopilot.mode = "agent"`, the agent can attempt file operations based on your natural language instructions.
-
-Supported tools:
-- Read File: Reads a workspace file and returns its content into the chat stream.
-- Write File: Writes or appends to a workspace file. A blocking confirmation prompt is shown before writing.
-- Diff/Apply: Produces a preview diff and can apply a simple header change. Applying requires confirmation.
-
-Safety prompts:
-- All write and diff-apply operations present a modal confirmation to the user. Reads and diffs are no-ops if the path is not in the current workspace.
-- Paths outside the open workspace are rejected.
-
-Example prompt that triggers tools:
-- “Read ‘src/App.js’ and suggest a change.”
-- “Produce a diff for ‘README.md’ then apply it.”
-- “Append a note to ‘notes/todo.txt’.”
-
-## Commands
-
-Core commands:
-- TE-Copilot: Open Chat — `teCopilot.open`
-- TE-Copilot: Send Selection — `teCopilot.sendSelection`
-- TE-Copilot: Set OpenAI API Key — `teCopilot.setOpenAIKey`
-
-MCP-like tools (can be executed directly or via agent):
-- TE-Copilot Tools: Read File — `teCopilot.tools.readFile`
-- TE-Copilot Tools: Write File (confirm) — `teCopilot.tools.writeFile`
-- TE-Copilot Tools: Produce Diff — `teCopilot.tools.produceDiff`
-- TE-Copilot Tools: Apply Diff (confirm) — `teCopilot.tools.applyDiff`
-
-## Webview Chat UI
-
-The chat UI shows a header with status, a scrollable message history, and a composer with input and actions.
-- Sending messages: Press Enter to send; Shift+Enter inserts a newline. Ctrl/Cmd+Enter also submits.
-- Copy responses: Each assistant message includes a Copy button.
-- Streaming: While the assistant is responding, the status shows “Thinking…” and a stop button becomes active.
-- Settings shortcut: The gear icon opens the extension settings.
+- Files: `media/webview/index.html`, `media/webview/styles.css`, `media/webview/app.js`
+- CSP: The extension injects a strict CSP and a script nonce. No inline scripts without a nonce.
+- UX: Header with status, scrollable message list, input with Send/Stop. Streaming state, copy buttons per assistant message, status updates, and a settings shortcut.
 
 ## Context Features
 
-TE-Copilot maintains a live context snapshot that includes:
-- Active editor: file path, language id, selection (text and ranges), caret position, and visible range
-- Workspace: open folders and visible editors
-
-Use the `TE-Copilot: Send Selection` command to explicitly add the current selection to the context, and the chat will acknowledge it. The extension automatically emits context updates on relevant editor and workspace events, so the assistant can incorporate this information in responses.
+- Active editor context: file name, language id, selection text, cursor, visible range
+- Workspace context: open folders and visible editors
+- Automatic updates are pushed to the webview.
 
 ## Troubleshooting
 
-- OpenAI key missing: If using the OpenAI provider, set your API key with `TE-Copilot: Set OpenAI API Key` or set `OPENAI_API_KEY` in the environment. If no key is found, the extension falls back to the mock provider and shows an error in the chat.
-- No response or errors: Check the Output and Debug Console for any errors from the provider fetch calls or webview messaging.
-- Ollama connection issues: Ensure your local Ollama server is running and accessible at `teCopilot.ollama.baseURL` (default `http://localhost:11434`).
-- Tool commands not acting on files: Tools only operate on files within the current workspace. Ensure the file path is inside an open workspace folder or open the file in the editor and run the tool to target that file.
-- Legacy settings: If you previously used `teCopilo.*` or `kaviaChat.*`, TE-Copilot reads those as fallbacks. Prefer configuring the new `teCopilot.*` keys going forward.
+- OpenAI key missing: Set with `TE-Copilot: Set OpenAI API Key` or set `OPENAI_API_KEY`.
+- Ollama: Ensure your server is running and reachable via `teCopilot.ollama.baseURL`.
+- Tools operate only within the current workspace.
+- Legacy settings: `teCopilo.*` and `kaviaChat.*` are read as fallbacks.
 
 ## Packaging
 
-- Build the extension: `npm run compile`
+- Build the extension TypeScript: `npm run compile`
 - Package a VSIX: `npm run package`
-  - If `@vscode/vsce` is not installed globally, the script will suggest installing it with `npm i -g @vscode/vsce`.
-- Install the VSIX in VS Code via the Extensions view menu (“Install from VSIX…”).
+  - If `@vscode/vsce` is not installed globally, install with `npm i -g @vscode/vsce`.
 
 ## IDs and Namespaces
 
@@ -197,8 +138,8 @@ Use the `TE-Copilot: Send Selection` command to explicitly add the current selec
 ## Development Notes
 
 - Sources live in `src/`, webview assets in `media/webview/`, and build output in `out/`.
-- The webview’s CSP and resource URIs are set at runtime. Only scripts with the injected nonce are allowed to run.
-- Messages between webview and extension use strongly-typed discriminated unions, routed via a message router.
+- The webview’s CSP and resource URIs are set at runtime by `SidebarProvider`. Only the script referenced with an injected nonce executes.
+- There are no React dependencies or builds required for the webview.
 
 ## License
 
