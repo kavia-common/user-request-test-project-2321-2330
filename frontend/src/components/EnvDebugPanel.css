@@ -1,0 +1,64 @@
+.env-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.env-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.env-title {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.env-subtitle {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.env-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.env-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.04), rgba(255,255,255,0));
+}
+
+.env-card-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.env-kv > div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.env-kv .k { color: var(--muted); }
+.env-kv .v { font-weight: 600; }
+
+.flags-pre {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 12px;
+}

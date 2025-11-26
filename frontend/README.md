@@ -1,82 +1,81 @@
-# Lightweight React Template for KAVIA
+# Ocean Professional React Frontend
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+A modern single-page React app with:
+- Ocean Professional theme (blue and amber accents)
+- Health badge with graceful degradation
+- Environment-aware config and debug panel
+- Lightweight logging controlled by REACT_APP_LOG_LEVEL
 
-## Features
+## Setup
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+1. Install
+   - npm install
+2. Run
+   - npm start
+3. Build
+   - npm run build
 
-## Getting Started
+Open http://localhost:3000 in your browser.
 
-In the project directory, you can run:
+## Environment Variables
 
-### `npm start`
+Create a `.env` from `.env.example`. All variables must be prefixed with `REACT_APP_` (CRA requirement).
 
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- REACT_APP_API_BASE: Preferred base URL for backend API (e.g., https://api.example.com)
+- REACT_APP_BACKEND_URL: Fallback base URL for backend API
+- REACT_APP_FRONTEND_URL: Public URL of this frontend, used for links/CTA
+- REACT_APP_WS_URL: Optional WebSocket URL
+- REACT_APP_NODE_ENV: Optional override; CRA also uses NODE_ENV
+- REACT_APP_NEXT_TELEMETRY_DISABLED: boolean string
+- REACT_APP_ENABLE_SOURCE_MAPS: boolean string
+- REACT_APP_PORT: Informational only; CRA uses PORT or defaults to 3000
+- REACT_APP_TRUST_PROXY: boolean string
+- REACT_APP_LOG_LEVEL: one of error|warn|info|debug (default info)
+- REACT_APP_HEALTHCHECK_PATH: backend health path (default /healthz)
+- REACT_APP_FEATURE_FLAGS: JSON string, e.g. {"newNavbar":true}
+- REACT_APP_EXPERIMENTS_ENABLED: boolean string
 
-### `npm test`
+Notes:
+- Health badge prefers REACT_APP_API_BASE then falls back to REACT_APP_BACKEND_URL.
+- If neither is set, the badge shows Offline.
 
-Launches the test runner in interactive watch mode.
+## Theming
 
-### `npm run build`
+The Ocean Professional palette is mapped to CSS variables:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- --primary: #2563EB
+- --secondary: #F59E0B
+- --error: #EF4444
+- --background: #f9fafb
+- --surface: #ffffff
+- --text: #111827
 
-## Customization
+Dark mode is preserved via data-theme="dark" with variable overrides. Use the sun/moon icon in the header to toggle. The choice persists in localStorage.
 
-### Colors
+## Health Check
 
-The main brand colors are defined as CSS variables in `src/App.css`:
+- Polls backend health at load and every 30s.
+- States:
+  - Online: 200 OK
+  - Degraded: Non-200 but reachable
+  - Offline: Network error or no backend configured
+- Accessible with aria-live="polite" and clear color contrast.
 
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
-```
+## Debug Panel and Feature Flags
 
-### Components
+- Visible automatically when REACT_APP_LOG_LEVEL=debug.
+- Or toggle in the UI (🛠️) or with the "Toggle Debug" button.
+- Shows:
+  - Last health status
+  - Effective REACT_APP_* vars (sanitized)
+  - Feature flags JSON and experiments enabled
 
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
+## Ports
 
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
+- CRA dev server typically uses PORT or defaults to 3000.
+- REACT_APP_PORT is informational for the UI and has no effect on the dev server.
 
-## Learn More
+## Logging
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Controlled by REACT_APP_LOG_LEVEL (error|warn|info|debug).
+- Uses console safely and won’t throw if console is unavailable.

@@ -1,0 +1,29 @@
+.health-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.health-badge .dot {
+  width: 8px; height: 8px; border-radius: 9999px;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.health-badge.online .dot { background: #10b981; } /* green */
+.health-badge.degraded .dot { background: var(--secondary); }
+.health-badge.offline .dot { background: var(--error); }
+
+.health-badge.online { border-color: rgba(16,185,129,0.25); }
+.health-badge.degraded { border-color: rgba(245,158,11,0.25); }
+.health-badge.offline { border-color: rgba(239,68,68,0.25); }
+
+.health-badge .text {
+  font-weight: 700;
+}
