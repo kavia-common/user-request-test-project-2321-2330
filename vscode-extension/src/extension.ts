@@ -28,25 +28,25 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // PUBLIC_INTERFACE
-  // Command: Open/focus the TE-Copilo sidebar
-  const openCommand = vscode.commands.registerCommand('teCopilo.open', async () => {
+  // Command: Open/focus the TE-Copilot sidebar
+  const openCommand = vscode.commands.registerCommand('teCopilot.open', async () => {
     // Force reveal the view
-    await vscode.commands.executeCommand('workbench.view.extension.teCopilo'); // switch to custom container
+    await vscode.commands.executeCommand('workbench.view.extension.teCopilot'); // switch to custom container
     await sidebarProvider.reveal();
   });
 
   // PUBLIC_INTERFACE
   // Command: Send Selection -> updates context and informs the chat panel
-  const sendSelectionCommand = vscode.commands.registerCommand('teCopilo.sendSelection', async () => {
+  const sendSelectionCommand = vscode.commands.registerCommand('teCopilot.sendSelection', async () => {
     const editor = vscode.window.activeTextEditor;
     const selectedText = editor?.document.getText(editor.selection) ?? '';
     if (!selectedText.trim()) {
-      vscode.window.showInformationMessage('TE-Copilo: No selection to send.');
+      vscode.window.showInformationMessage('TE-Copilot: No selection to send.');
       return;
     }
 
     // Ensure the chat view is visible
-    await vscode.commands.executeCommand('teCopilo.open');
+    await vscode.commands.executeCommand('teCopilot.open');
 
     // Build a fresh context snapshot that includes current selection text
     const ctx = safeContextSnapshotWithSelection();
@@ -67,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // PUBLIC_INTERFACE
   // Command: Set OpenAI API Key (stores in SecretStorage)
-  const setOpenAIKeyCommand = vscode.commands.registerCommand('teCopilo.setOpenAIKey', async () => {
+  const setOpenAIKeyCommand = vscode.commands.registerCommand('teCopilot.setOpenAIKey', async () => {
     const input = await vscode.window.showInputBox({
       ignoreFocusOut: true,
       password: true,
@@ -78,11 +78,11 @@ export function activate(context: vscode.ExtensionContext) {
     if (!input) {
       return;
     }
-    await context.secrets.store('teCopilo.openai.apiKey', input.trim());
-    // Also store legacy keys for backward compatibility with older versions
     await context.secrets.store('teCopilot.openai.apiKey', input.trim());
+    // Also store legacy keys for backward compatibility with older versions
+    await context.secrets.store('teCopilo.openai.apiKey', input.trim());
     await context.secrets.store('kaviaChat.openai.apiKey', input.trim());
-    vscode.window.showInformationMessage('TE-Copilo: OpenAI API key saved.');
+    vscode.window.showInformationMessage('TE-Copilot: OpenAI API key saved.');
   });
 
   context.subscriptions.push(providerDisposable, openCommand, sendSelectionCommand, setOpenAIKeyCommand);

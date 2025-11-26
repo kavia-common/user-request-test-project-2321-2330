@@ -5,7 +5,7 @@ import { getActiveEditorContext } from './context/activeEditorContext';
 import { getWorkspaceContext } from './context/workspaceContext';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  public static readonly viewId = 'teCopilo.view';
+  public static readonly viewId = 'teCopilot.view';
 
   private _view?: vscode.WebviewView;
   private router = new MessageRouter();
@@ -31,12 +31,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         try {
           // Get model from settings (OpenAI specific)
-          const primary = vscode.workspace.getConfiguration('teCopilo');
-          const legacyTe = vscode.workspace.getConfiguration('teCopilot');
+          const primary = vscode.workspace.getConfiguration('teCopilot');
+          const legacyCopilo = vscode.workspace.getConfiguration('teCopilo');
           const legacyK = vscode.workspace.getConfiguration('kaviaChat');
           const model = String(
-            primary.get('teCopilo.openai.model') ??
-            legacyTe.get('teCopilot.openai.model') ??
+            primary.get('teCopilot.openai.model') ??
+            legacyCopilo.get('teCopilo.openai.model') ??
             legacyK.get('kaviaChat.openai.model') ??
             'gpt-4o-mini'
           );
@@ -59,7 +59,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       })
       .on('chat:openSettings', () => {
         // Open extension settings scoped to this extension
-        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:your-publisher.te-copilo-chat');
+        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:your-publisher.te-copilot-chat');
       });
 
     // Listen to editor/workspace events and emit context updates to webview
@@ -110,7 +110,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   async reveal(): Promise<void> {
     if (!this._view) {
       // If not yet resolved, trigger reveal by executing the built-in command to focus our container
-      await vscode.commands.executeCommand('workbench.view.extension.teCopilo');
+      await vscode.commands.executeCommand('workbench.view.extension.teCopilot');
       return;
     }
     this._view?.show?.(true);
@@ -143,14 +143,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TE-Copilo Chat</title>
+  <title>TE-Copilot Chat</title>
   <link rel="stylesheet" href="${indexCss}">
 </head>
 <body>
   <div id="app" class="container">
     <header class="header">
       <div class="header-left">
-        <div class="title">TE-Copilo Chat</div>
+        <div class="title">TE-Copilot Chat</div>
         <div class="subtitle">
           <span id="statusDot" class="status-dot idle"></span>
           <span id="statusText" aria-live="polite">Idle</span>
@@ -222,34 +222,34 @@ function getNonce(): string {
 
 /**
  * Return a snapshot of configuration that should be sent to the webview on load.
- * Reads new primary namespace teCopilo, with fallbacks to teCopilot and kaviaChat.
+ * Reads new primary namespace teCopilot, with fallbacks to teCopilo and kaviaChat.
  */
 function getConfigSnapshot(): Record<string, unknown> {
-  const primary = vscode.workspace.getConfiguration('teCopilo');
-  const legacyTe = vscode.workspace.getConfiguration('teCopilot');
+  const primary = vscode.workspace.getConfiguration('teCopilot');
+  const legacyCopilo = vscode.workspace.getConfiguration('teCopilo');
   const legacyKavia = vscode.workspace.getConfiguration('kaviaChat');
   return {
-    provider: primary.get('teCopilo.provider', (legacyTe.get('teCopilot.provider', legacyKavia.get('kaviaChat.provider', 'mock')) as string)),
-    mode: primary.get('teCopilo.mode', (legacyTe.get('teCopilot.mode', legacyKavia.get('kaviaChat.mode', 'assistant')) as string)),
-    temperature: primary.get('teCopilo.temperature') ?? legacyTe.get('teCopilot.temperature') ?? legacyKavia.get('kaviaChat.temperature'),
-    maxTokens: primary.get('teCopilo.maxTokens') ?? legacyTe.get('teCopilot.maxTokens') ?? legacyKavia.get('kaviaChat.maxTokens'),
-    topP: primary.get('teCopilo.topP') ?? legacyTe.get('teCopilot.topP') ?? legacyKavia.get('kaviaChat.topP'),
-    frequencyPenalty: primary.get('teCopilo.frequencyPenalty') ?? legacyTe.get('teCopilot.frequencyPenalty') ?? legacyKavia.get('kaviaChat.frequencyPenalty'),
-    presencePenalty: primary.get('teCopilo.presencePenalty') ?? legacyTe.get('teCopilot.presencePenalty') ?? legacyKavia.get('kaviaChat.presencePenalty'),
-    systemPrompt: (primary.get('teCopilo.systemPrompt') ?? legacyTe.get('teCopilot.systemPrompt') ?? legacyKavia.get('kaviaChat.systemPrompt')) as string | undefined,
+    provider: primary.get('teCopilot.provider', (legacyCopilo.get('teCopilo.provider', legacyKavia.get('kaviaChat.provider', 'mock')) as string)),
+    mode: primary.get('teCopilot.mode', (legacyCopilo.get('teCopilo.mode', legacyKavia.get('kaviaChat.mode', 'assistant')) as string)),
+    temperature: primary.get('teCopilot.temperature') ?? legacyCopilo.get('teCopilo.temperature') ?? legacyKavia.get('kaviaChat.temperature'),
+    maxTokens: primary.get('teCopilot.maxTokens') ?? legacyCopilo.get('teCopilo.maxTokens') ?? legacyKavia.get('kaviaChat.maxTokens'),
+    topP: primary.get('teCopilot.topP') ?? legacyCopilo.get('teCopilo.topP') ?? legacyKavia.get('kaviaChat.topP'),
+    frequencyPenalty: primary.get('teCopilot.frequencyPenalty') ?? legacyCopilo.get('teCopilo.frequencyPenalty') ?? legacyKavia.get('kaviaChat.frequencyPenalty'),
+    presencePenalty: primary.get('teCopilot.presencePenalty') ?? legacyCopilo.get('teCopilo.presencePenalty') ?? legacyKavia.get('kaviaChat.presencePenalty'),
+    systemPrompt: (primary.get('teCopilot.systemPrompt') ?? legacyCopilo.get('teCopilo.systemPrompt') ?? legacyKavia.get('kaviaChat.systemPrompt')) as string | undefined,
     openai: {
-      model: primary.get('teCopilo.openai.model', (legacyTe.get('teCopilot.openai.model', legacyKavia.get('kaviaChat.openai.model', 'gpt-4o-mini')) as string)),
-      baseURL: primary.get('teCopilo.openai.baseURL', (legacyTe.get('teCopilot.openai.baseURL', legacyKavia.get('kaviaChat.openai.baseURL', 'https://api.openai.com/v1')) as string)),
+      model: primary.get('teCopilot.openai.model', (legacyCopilo.get('teCopilo.openai.model', legacyKavia.get('kaviaChat.openai.model', 'gpt-4o-mini')) as string)),
+      baseURL: primary.get('teCopilot.openai.baseURL', (legacyCopilo.get('teCopilo.openai.baseURL', legacyKavia.get('kaviaChat.openai.baseURL', 'https://api.openai.com/v1')) as string)),
     },
     ollama: {
-      model: primary.get('teCopilo.ollama.model', (legacyTe.get('teCopilot.ollama.model', legacyKavia.get('kaviaChat.ollama.model', 'llama3.1')) as string)),
-      baseURL: primary.get('teCopilo.ollama.baseURL', (legacyTe.get('teCopilot.ollama.baseURL', legacyKavia.get('kaviaChat.ollama.baseURL', 'http://localhost:11434')) as string)),
+      model: primary.get('teCopilot.ollama.model', (legacyCopilo.get('teCopilo.ollama.model', legacyKavia.get('kaviaChat.ollama.model', 'llama3.1')) as string)),
+      baseURL: primary.get('teCopilot.ollama.baseURL', (legacyCopilo.get('teCopilo.ollama.baseURL', legacyKavia.get('kaviaChat.ollama.baseURL', 'http://localhost:11434')) as string)),
     },
     langchain: {
       tools: {
-        enableRead: (primary.get('teCopilo.langchain.tools.enableRead') ?? legacyTe.get('teCopilot.langchain.tools.enableRead') ?? legacyKavia.get('kaviaChat.langchain.tools.enableRead')) as boolean ?? false,
-        enableWrite: (primary.get('teCopilo.langchain.tools.enableWrite') ?? legacyTe.get('teCopilot.langchain.tools.enableWrite') ?? legacyKavia.get('kaviaChat.langchain.tools.enableWrite')) as boolean ?? false,
-        enableDiff: (primary.get('teCopilo.langchain.tools.enableDiff') ?? legacyTe.get('teCopilot.langchain.tools.enableDiff') ?? legacyKavia.get('kaviaChat.langchain.tools.enableDiff')) as boolean ?? false,
+        enableRead: (primary.get('teCopilot.langchain.tools.enableRead') ?? legacyCopilo.get('teCopilo.langchain.tools.enableRead') ?? legacyKavia.get('kaviaChat.langchain.tools.enableRead')) as boolean ?? false,
+        enableWrite: (primary.get('teCopilot.langchain.tools.enableWrite') ?? legacyCopilo.get('teCopilo.langchain.tools.enableWrite') ?? legacyKavia.get('kaviaChat.langchain.tools.enableWrite')) as boolean ?? false,
+        enableDiff: (primary.get('teCopilot.langchain.tools.enableDiff') ?? legacyCopilo.get('teCopilo.langchain.tools.enableDiff') ?? legacyKavia.get('kaviaChat.langchain.tools.enableDiff')) as boolean ?? false,
       }
     }
   };

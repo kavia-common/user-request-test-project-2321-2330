@@ -1,8 +1,8 @@
 {
-  "name": "te-copilo-chat",
-  "displayName": "TE-Copilo Chat",
+  "name": "te-copilot-chat",
+  "displayName": "TE-Copilot Chat",
   "publisher": "your-publisher",
-  "description": "TE-Copilo Chat - VS Code sidebar chat extension scaffold.",
+  "description": "TE-Copilot Chat - VS Code sidebar chat extension scaffold.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
@@ -11,14 +11,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:teCopilo.open",
-    "onCommand:teCopilo.sendSelection",
-    "onCommand:teCopilo.setOpenAIKey",
-    "onCommand:teCopilo.tools.readFile",
-    "onCommand:teCopilo.tools.writeFile",
-    "onCommand:teCopilo.tools.produceDiff",
-    "onCommand:teCopilo.tools.applyDiff",
-    "onView:teCopilo.view"
+    "onCommand:teCopilot.open",
+    "onCommand:teCopilot.sendSelection",
+    "onCommand:teCopilot.setOpenAIKey",
+    "onCommand:teCopilot.tools.readFile",
+    "onCommand:teCopilot.tools.writeFile",
+    "onCommand:teCopilot.tools.produceDiff",
+    "onCommand:teCopilot.tools.applyDiff",
+    "onView:teCopilot.view"
   ],
   "main": "./out/extension.js",
   "icon": "",
@@ -26,64 +26,64 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "teCopilo",
-          "title": "TE-Copilo",
+          "id": "teCopilot",
+          "title": "TE-Copilot",
           "icon": "resources/te-copilot-codicon.svg"
         }
       ]
     },
     "views": {
-      "teCopilo": [
+      "teCopilot": [
         {
           "type": "webview",
-          "id": "teCopilo.view",
+          "id": "teCopilot.view",
           "name": "Chat",
-          "contextualTitle": "TE-Copilo Chat"
+          "contextualTitle": "TE-Copilot Chat"
         }
       ]
     },
     "commands": [
       {
-        "command": "teCopilo.open",
-        "title": "TE-Copilo: Open Chat",
-        "category": "TE-Copilo"
+        "command": "teCopilot.open",
+        "title": "TE-Copilot: Open Chat",
+        "category": "TE-Copilot"
       },
       {
-        "command": "teCopilo.sendSelection",
-        "title": "TE-Copilo: Send Selection",
-        "category": "TE-Copilo"
+        "command": "teCopilot.sendSelection",
+        "title": "TE-Copilot: Send Selection",
+        "category": "TE-Copilot"
       },
       {
-        "command": "teCopilo.setOpenAIKey",
-        "title": "TE-Copilo: Set OpenAI API Key",
-        "category": "TE-Copilo"
+        "command": "teCopilot.setOpenAIKey",
+        "title": "TE-Copilot: Set OpenAI API Key",
+        "category": "TE-Copilot"
       },
       {
-        "command": "teCopilo.tools.readFile",
-        "title": "TE-Copilo Tools: Read File",
-        "category": "TE-Copilo Tools"
+        "command": "teCopilot.tools.readFile",
+        "title": "TE-Copilot Tools: Read File",
+        "category": "TE-Copilot Tools"
       },
       {
-        "command": "teCopilo.tools.writeFile",
-        "title": "TE-Copilo Tools: Write File (confirm)",
-        "category": "TE-Copilo Tools"
+        "command": "teCopilot.tools.writeFile",
+        "title": "TE-Copilot Tools: Write File (confirm)",
+        "category": "TE-Copilot Tools"
       },
       {
-        "command": "teCopilo.tools.produceDiff",
-        "title": "TE-Copilo Tools: Produce Diff",
-        "category": "TE-Copilo Tools"
+        "command": "teCopilot.tools.produceDiff",
+        "title": "TE-Copilot Tools: Produce Diff",
+        "category": "TE-Copilot Tools"
       },
       {
-        "command": "teCopilo.tools.applyDiff",
-        "title": "TE-Copilo Tools: Apply Diff (confirm)",
-        "category": "TE-Copilo Tools"
+        "command": "teCopilot.tools.applyDiff",
+        "title": "TE-Copilot Tools: Apply Diff (confirm)",
+        "category": "TE-Copilot Tools"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "TE-Copilo Chat",
+      "title": "TE-Copilot Chat",
       "properties": {
-        "teCopilo.provider": {
+        "teCopilot.provider": {
           "type": "string",
           "default": "mock",
           "enum": [
@@ -100,58 +100,58 @@
           ],
           "description": "Select AI provider/agent to use for chat."
         },
-        "teCopilo.mode": {
+        "teCopilot.mode": {
           "type": "string",
           "default": "assistant",
           "enum": ["assistant", "agent"],
           "description": "Interaction mode. Agent mode enables tool usage where available."
         },
-        "teCopilo.temperature": {
+        "teCopilot.temperature": {
           "type": "number",
           "default": 0.2,
           "minimum": 0,
           "maximum": 2,
           "description": "Sampling temperature."
         },
-        "teCopilo.maxTokens": {
+        "teCopilot.maxTokens": {
           "type": "number",
           "default": 1024,
           "minimum": 1,
           "description": "Maximum tokens to generate (provider specific semantics)."
         },
-        "teCopilo.topP": {
+        "teCopilot.topP": {
           "type": "number",
           "default": 1,
           "minimum": 0,
           "maximum": 1,
           "description": "Top-p nucleus sampling parameter."
         },
-        "teCopilo.frequencyPenalty": {
+        "teCopilot.frequencyPenalty": {
           "type": "number",
           "default": 0,
           "minimum": 0,
           "maximum": 2,
           "description": "Frequency penalty (where supported)."
         },
-        "teCopilo.presencePenalty": {
+        "teCopilot.presencePenalty": {
           "type": "number",
           "default": 0,
           "minimum": 0,
           "maximum": 2,
           "description": "Presence penalty (where supported)."
         },
-        "teCopilo.systemPrompt": {
+        "teCopilot.systemPrompt": {
           "type": "string",
           "default": "You are a helpful coding assistant.",
           "markdownDescription": "System prompt injected before user messages."
         },
 
-        "teCopilo.openai.model": {
+        "teCopilot.openai.model": {
           "type": "string",
           "default": "gpt-4o-mini",
           "description": "OpenAI model identifier (e.g., gpt-4o, gpt-4o-mini, gpt-4.1-mini)."
         },
-        "teCopilo.openai.baseURL": {
+        "teCopilot.openai.baseURL": {
           "type": "string",
           "default": "https://api.openai.com/v1",
           "markdownDescription": "Base URL for OpenAI-compatible API. Useful for proxies or Azure/OpenAI-compatible services.",
@@ -159,12 +159,12 @@
           "patternErrorMessage": "Must be a valid http(s) URL."
         },
 
-        "teCopilo.ollama.model": {
+        "teCopilot.ollama.model": {
           "type": "string",
           "default": "llama3.1",
           "description": "Ollama model name (e.g., llama3.1, qwen2.5-coder)."
         },
-        "teCopilo.ollama.baseURL": {
+        "teCopilot.ollama.baseURL": {
           "type": "string",
           "default": "http://localhost:11434",
           "pattern": "^https?://.*",
@@ -172,17 +172,17 @@
           "description": "Ollama server base URL."
         },
 
-        "teCopilo.langchain.tools.enableRead": {
+        "teCopilot.langchain.tools.enableRead": {
           "type": "boolean",
           "default": false,
           "description": "Enable MCP read file tool for LangChain agent."
         },
-        "teCopilo.langchain.tools.enableWrite": {
+        "teCopilot.langchain.tools.enableWrite": {
           "type": "boolean",
           "default": false,
           "description": "Enable MCP write file tool for LangChain agent (confirmation required)."
         },
-        "teCopilo.langchain.tools.enableDiff": {
+        "teCopilot.langchain.tools.enableDiff": {
           "type": "boolean",
           "default": false,
           "description": "Enable MCP diff/patch tool for LangChain agent (confirmation required)."
