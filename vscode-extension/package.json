@@ -1,0 +1,88 @@
+{
+  "name": "kavia-chat",
+  "displayName": "KAVIA Chat",
+  "publisher": "your-publisher",
+  "description": "KAVIA Chat - VS Code sidebar chat extension scaffold.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:kaviaChat.open",
+    "onCommand:kaviaChat.sendSelection",
+    "onView:kaviaChat.view"
+  ],
+  "main": "./out/extension.js",
+  "icon": "",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kaviaChat",
+          "title": "KAVIA",
+          "icon": "resources/kavia-codicon.svg"
+        }
+      ]
+    },
+    "views": {
+      "kaviaChat": [
+        {
+          "type": "webview",
+          "id": "kaviaChat.view",
+          "name": "Chat",
+          "contextualTitle": "KAVIA Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "kaviaChat.open",
+        "title": "KAVIA Chat: Open Chat",
+        "category": "KAVIA Chat"
+      },
+      {
+        "command": "kaviaChat.sendSelection",
+        "title": "KAVIA Chat: Send Selection",
+        "category": "KAVIA Chat"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "KAVIA Chat",
+      "properties": {
+        "kaviaChat.provider": {
+          "type": "string",
+          "default": "mock",
+          "enum": [
+            "mock",
+            "openai"
+          ],
+          "enumDescriptions": [
+            "Use a mock provider (for development)",
+            "Use OpenAI provider (configure API key later)"
+          ],
+          "description": "Select AI provider to use for chat (wiring added in later steps)."
+        },
+        "kaviaChat.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model identifier for chosen provider (used in later steps)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "package": "vsce package || echo \"Install 'vsce' globally to package: npm i -g @vscode/vsce\""
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/test-electron": "^2.3.9"
+  }
+}
