@@ -26,17 +26,18 @@ export class LangChainAgent implements ChatProvider {
   private readonly enableDiff: boolean;
 
   constructor() {
-    const newCfg = vscode.workspace.getConfiguration('teCopilot');
+    const primary = vscode.workspace.getConfiguration('teCopilo');
+    const legacyTe = vscode.workspace.getConfiguration('teCopilot');
     const oldCfg = vscode.workspace.getConfiguration('kaviaChat');
-    this.temperature = (newCfg.get<number>('teCopilot.temperature') ?? oldCfg.get<number>('kaviaChat.temperature')) as number | undefined;
-    this.maxTokens = (newCfg.get<number>('teCopilot.maxTokens') ?? oldCfg.get<number>('kaviaChat.maxTokens')) as number | undefined;
-    this.topP = (newCfg.get<number>('teCopilot.topP') ?? oldCfg.get<number>('kaviaChat.topP')) as number | undefined;
-    this.frequencyPenalty = (newCfg.get<number>('teCopilot.frequencyPenalty') ?? oldCfg.get<number>('kaviaChat.frequencyPenalty')) as number | undefined;
-    this.presencePenalty = (newCfg.get<number>('teCopilot.presencePenalty') ?? oldCfg.get<number>('kaviaChat.presencePenalty')) as number | undefined;
-    this.systemPrompt = (newCfg.get<string>('teCopilot.systemPrompt') ?? oldCfg.get<string>('kaviaChat.systemPrompt')) || 'You are a helpful coding assistant.';
-    this.enableRead = !!(newCfg.get<boolean>('teCopilot.langchain.tools.enableRead') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableRead'));
-    this.enableWrite = !!(newCfg.get<boolean>('teCopilot.langchain.tools.enableWrite') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableWrite'));
-    this.enableDiff = !!(newCfg.get<boolean>('teCopilot.langchain.tools.enableDiff') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableDiff'));
+    this.temperature = (primary.get<number>('teCopilo.temperature') ?? legacyTe.get<number>('teCopilot.temperature') ?? oldCfg.get<number>('kaviaChat.temperature')) as number | undefined;
+    this.maxTokens = (primary.get<number>('teCopilo.maxTokens') ?? legacyTe.get<number>('teCopilot.maxTokens') ?? oldCfg.get<number>('kaviaChat.maxTokens')) as number | undefined;
+    this.topP = (primary.get<number>('teCopilo.topP') ?? legacyTe.get<number>('teCopilot.topP') ?? oldCfg.get<number>('kaviaChat.topP')) as number | undefined;
+    this.frequencyPenalty = (primary.get<number>('teCopilo.frequencyPenalty') ?? legacyTe.get<number>('teCopilot.frequencyPenalty') ?? oldCfg.get<number>('kaviaChat.frequencyPenalty')) as number | undefined;
+    this.presencePenalty = (primary.get<number>('teCopilo.presencePenalty') ?? legacyTe.get<number>('teCopilot.presencePenalty') ?? oldCfg.get<number>('kaviaChat.presencePenalty')) as number | undefined;
+    this.systemPrompt = (primary.get<string>('teCopilo.systemPrompt') ?? legacyTe.get<string>('teCopilot.systemPrompt') ?? oldCfg.get<string>('kaviaChat.systemPrompt')) || 'You are a helpful coding assistant.';
+    this.enableRead = !!(primary.get<boolean>('teCopilo.langchain.tools.enableRead') ?? legacyTe.get<boolean>('teCopilot.langchain.tools.enableRead') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableRead'));
+    this.enableWrite = !!(primary.get<boolean>('teCopilo.langchain.tools.enableWrite') ?? legacyTe.get<boolean>('teCopilot.langchain.tools.enableWrite') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableWrite'));
+    this.enableDiff = !!(primary.get<boolean>('teCopilo.langchain.tools.enableDiff') ?? legacyTe.get<boolean>('teCopilot.langchain.tools.enableDiff') ?? oldCfg.get<boolean>('kaviaChat.langchain.tools.enableDiff'));
 
     // Ensure commands exist
     ensureMcpCommandsRegistered();
