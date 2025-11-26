@@ -31,11 +31,38 @@ A TypeScript-based scaffold for a VS Code Chat sidebar extension.
 
 ## Configuration
 
-- `kaviaChat.provider`: `mock` | `openai`
+General
+- `kaviaChat.provider`: `mock` | `openai` | `ollama` | `langchain`
+- `kaviaChat.mode`: `assistant` | `agent`
+- `kaviaChat.temperature`: number, default 0.2
+- `kaviaChat.maxTokens`: number, default 1024
+- `kaviaChat.topP`: number, default 1
+- `kaviaChat.frequencyPenalty`: number, default 0
+- `kaviaChat.presencePenalty`: number, default 0
+- `kaviaChat.systemPrompt`: system prompt to guide the assistant
+
+OpenAI
 - `kaviaChat.openai.model`: OpenAI model id (e.g., `gpt-4o-mini`)
 - `kaviaChat.openai.baseURL`: Base URL for OpenAI-compatible API (default: `https://api.openai.com/v1`)
 - Secret: `kaviaChat.openai.apiKey` is stored in VS Code Secret Storage when running `KAVIA Chat: Set OpenAI API Key`.
 - Alternatively, you may set environment variable `OPENAI_API_KEY` for the extension host.
+
+Ollama (local)
+- `kaviaChat.ollama.model`: Ollama model name (e.g., `llama3.1`)
+- `kaviaChat.ollama.baseURL`: Ollama server URL (default: `http://localhost:11434`)
+
+LangChain Agent (lightweight)
+- Select `kaviaChat.provider = langchain` and optionally `kaviaChat.mode = agent`
+- Optional MCP-like tools (disabled by default):
+  - `kaviaChat.langchain.tools.enableRead`: Allow read file tool
+  - `kaviaChat.langchain.tools.enableWrite`: Allow write file tool (confirmation required)
+  - `kaviaChat.langchain.tools.enableDiff`: Allow diff/patch tool (confirmation required)
+
+Commands (MCP-like tools)
+- `KAVIA Chat Tools: Read File` (kaviaChat.tools.readFile)
+- `KAVIA Chat Tools: Write File (confirm)` (kaviaChat.tools.writeFile)
+- `KAVIA Chat Tools: Produce Diff` (kaviaChat.tools.produceDiff)
+- `KAVIA Chat Tools: Apply Diff (confirm)` (kaviaChat.tools.applyDiff)
 
 ## Notes
 

@@ -220,10 +220,28 @@ function getConfigSnapshot(): Record<string, unknown> {
   const config = vscode.workspace.getConfiguration('kaviaChat');
   return {
     provider: config.get('kaviaChat.provider', 'mock'),
+    mode: config.get('kaviaChat.mode', 'assistant'),
+    temperature: config.get('kaviaChat.temperature'),
+    maxTokens: config.get('kaviaChat.maxTokens'),
+    topP: config.get('kaviaChat.topP'),
+    frequencyPenalty: config.get('kaviaChat.frequencyPenalty'),
+    presencePenalty: config.get('kaviaChat.presencePenalty'),
+    systemPrompt: config.get('kaviaChat.systemPrompt'),
     openai: {
       model: config.get('kaviaChat.openai.model', 'gpt-4o-mini'),
       baseURL: config.get('kaviaChat.openai.baseURL', 'https://api.openai.com/v1'),
     },
+    ollama: {
+      model: config.get('kaviaChat.ollama.model', 'llama3.1'),
+      baseURL: config.get('kaviaChat.ollama.baseURL', 'http://localhost:11434'),
+    },
+    langchain: {
+      tools: {
+        enableRead: config.get('kaviaChat.langchain.tools.enableRead', false),
+        enableWrite: config.get('kaviaChat.langchain.tools.enableWrite', false),
+        enableDiff: config.get('kaviaChat.langchain.tools.enableDiff', false),
+      }
+    }
   };
 }
 
