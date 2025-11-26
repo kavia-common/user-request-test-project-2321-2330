@@ -1,11 +1,63 @@
 import * as vscode from 'vscode';
+import { ExtensionToWebviewMessage, MessageRouter, WebviewToExtensionMessage, postToWebview } from './messaging';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewId = 'kaviaChat.view';
 
   private _view?: vscode.WebviewView;
+  private router = new MessageRouter();
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) {
+    // Register router handlers
+    this.router
+      .on('chat:loaded', (_message, webviewView) => {
+        // Send initial config/context to webview on load
+        const config = getConfigSnapshot();
+        const context = getContextSnapshot();
+        postToWebview(webviewView, { type: 'config:update', config });
+        postToWebview(webviewView, { type: 'context:update', context });
+      })
+      .on('chat:send', (message, webviewView) => {
+        // For now, mock a streaming response in chunks to simulate provider.
+        const payload = (message as Extract<WebviewToExtensionMessage, { type: 'chat:send' }>).payload;
+        const userText = (payload?.text || '').trim();
+        if (!userText) {
+          postToWebview(webviewView, { type: 'chat:error', error: 'Empty message' });
+          return;
+        }
+
+        // Simulate streaming by splitting words
+        const reply = `You said: ${userText}\n\n(MOCK RESPONSE)`;
+        const chunks = reply.split(/(\s+)/); // keep spaces
+        let idx = 0;
+
+        const interval = setInterval(() => {
+          const view = this._view;
+          if (!view) {
+            clearInterval(interval);
+            return;
+          }
+          if (idx < chunks.length) {
+            postToWebview(view, { type: 'chat:response', delta: chunks[idx] });
+            idx++;
+          } else {
+            clearInterval(interval);
+            postToWebview(view, { type: 'chat:response', done: true });
+          }
+        }, 50);
+      })
+      .on('chat:stop', (_message, _webviewView) => {
+        // In a real provider, signal cancellation. Here we just acknowledge.
+        // Since our mock uses setInterval above, it will stop on view loss only;
+        // a real implementation would keep a handle to clear on stop.
+        // Inform webview generation is stopped.
+        postToWebview(this._view, { type: 'chat:response', done: true });
+      })
+      .on('chat:openSettings', () => {
+        // Open extension settings scoped to this extension
+        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:your-publisher.kavia-chat');
+      });
+  }
 
   resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -22,16 +74,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       ]
     };
 
+    // Provide full chat UI from bundled HTML and JS with CSP handled here
     const html = this.getHtmlForWebview(webview);
     webview.html = html;
 
-    // Handle messages from the webview
-    webview.onDidReceiveMessage((message) => {
-      // Placeholder: log message
-      if (message?.type) {
-        console.log('KAVIA Chat webview message:', message);
+    // Handle messages from the webview using our router
+    webview.onDidReceiveMessage((message: WebviewToExtensionMessage) => {
+      try {
+        if (message?.type) {
+          this.router.dispatch(message, webviewView);
+        }
+      } catch (err) {
+        console.error('Error handling webview message:', err);
+        postToWebview(webviewView, { type: 'chat:error', error: 'Internal error in extension' });
       }
-      // TODO: route messages in later steps
     });
   }
 
@@ -56,6 +112,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview');
 
+    const indexHtml = vscode.Uri.joinPath(mediaRoot, 'index.html');
+    const indexHtmlUri = webview.asWebviewUri(indexHtml);
+    // We'll inline the HTML template here to preserve CSP nonce assignment to the script tag,
+    // because the static index.html in media includes a plain <script> without nonce.
+    // Instead, we reconstruct a similar structure with proper asset URIs and nonce.
+
     const indexCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'styles.css'));
     const appJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'app.js'));
 
@@ -68,25 +130,54 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       `connect-src https: ${webview.cspSource};`
     ].join(' ');
 
+    // Recreate index.html with the same structure, but inject nonce
     return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KAVIA Chat</title>
   <link rel="stylesheet" href="${indexCss}">
 </head>
 <body>
   <div id="app" class="container">
     <header class="header">
-      <div class="title">KAVIA Chat</div>
-      <div class="subtitle">Welcome</div>
+      <div class="header-left">
+        <div class="title">KAVIA Chat</div>
+        <div class="subtitle">
+          <span id="statusDot" class="status-dot idle"></span>
+          <span id="statusText" aria-live="polite">Idle</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="openSettings" class="icon-btn" title="Settings" aria-label="Open Settings">⚙️</button>
+      </div>
     </header>
+
     <main class="content">
-      <p class="muted">This is a placeholder. Chat features will be implemented in later steps.</p>
-      <button id="openDocs" class="btn">Open Settings</button>
+      <div id="messages" class="messages" aria-live="polite" aria-label="Chat messages"></div>
+      <div id="streamingIndicator" class="streaming hidden">
+        <span class="dot dot1"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+        <span class="streaming-text">Assistant is thinking…</span>
+      </div>
     </main>
+
+    <footer class="composer">
+      <div class="input-row">
+        <textarea
+          id="input"
+          rows="1"
+          placeholder="Type a message... (Press Enter to send, Shift+Enter for newline)"
+          aria-label="Chat input"
+        ></textarea>
+        <div class="composer-actions">
+          <button id="stopBtn" class="btn secondary" disabled title="Stop generation (Esc)">Stop</button>
+          <button id="sendBtn" class="btn primary" title="Send (Ctrl/Cmd+Enter)">Send</button>
+        </div>
+      </div>
+      <div class="hint">Tip: Use Ctrl/Cmd + Enter to submit</div>
+    </footer>
   </div>
 
   <script nonce="${nonce}" src="${appJs}"></script>
@@ -95,10 +186,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Post message to the webview (to be used in later steps).
+   * Post message to the webview.
    */
   // PUBLIC_INTERFACE
-  postMessage(message: unknown) {
+  postMessage(message: ExtensionToWebviewMessage) {
     this._view?.webview.postMessage(message);
   }
 }
@@ -113,4 +204,27 @@ function getNonce(): string {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
+}
+
+/**
+ * Return a snapshot of configuration that should be sent to the webview on load.
+ * In future steps, read actual settings. For now, provide minimal mock config.
+ */
+function getConfigSnapshot(): Record<string, unknown> {
+  const config = vscode.workspace.getConfiguration('kaviaChat');
+  return {
+    provider: config.get('kaviaChat.provider', 'mock'),
+    model: config.get('kaviaChat.model', 'gpt-4o-mini'),
+  };
+}
+
+/**
+ * Return a snapshot of context data (e.g., workspace info) to the webview.
+ */
+function getContextSnapshot(): Record<string, unknown> {
+  const folders = vscode.workspace.workspaceFolders?.map(f => f.name) ?? [];
+  return {
+    workspaceFolders: folders,
+    vscodeVersion: vscode.version,
+  };
 }
