@@ -10,14 +10,43 @@
 <body>
   <div id="app" class="container">
     <header class="header">
-      <div class="title">KAVIA Chat</div>
-      <div class="subtitle">Welcome</div>
+      <div class="header-left">
+        <div class="title">KAVIA Chat</div>
+        <div class="subtitle">
+          <span id="statusDot" class="status-dot idle"></span>
+          <span id="statusText" aria-live="polite">Idle</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="openSettings" class="icon-btn" title="Settings" aria-label="Open Settings">⚙️</button>
+      </div>
     </header>
+
     <main class="content">
-      <p class="muted">This is a placeholder. Chat features will be implemented in later steps.</p>
-      <button id="openDocs" class="btn">Open Settings</button>
+      <div id="messages" class="messages" aria-live="polite" aria-label="Chat messages"></div>
+      <div id="streamingIndicator" class="streaming hidden">
+        <span class="dot dot1"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+        <span class="streaming-text">Assistant is thinking…</span>
+      </div>
     </main>
+
+    <footer class="composer">
+      <div class="input-row">
+        <textarea
+          id="input"
+          rows="1"
+          placeholder="Type a message... (Press Enter to send, Shift+Enter for newline)"
+          aria-label="Chat input"
+        ></textarea>
+        <div class="composer-actions">
+          <button id="stopBtn" class="btn secondary" disabled title="Stop generation (Esc)">Stop</button>
+          <button id="sendBtn" class="btn primary" title="Send (Ctrl/Cmd+Enter)">Send</button>
+        </div>
+      </div>
+      <div class="hint">Tip: Use Ctrl/Cmd + Enter to submit</div>
+    </footer>
   </div>
+
   <script src="./app.js"></script>
 </body>
 </html>
