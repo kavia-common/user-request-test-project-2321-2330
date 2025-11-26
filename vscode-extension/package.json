@@ -24,7 +24,7 @@
   "icon": "",
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
+      "secondary": [
         {
           "id": "teCopilot",
           "title": "TE-Copilot",
@@ -33,7 +33,7 @@
       ]
     },
     "views": {
-      "teCopilot": [
+      "secondary": [
         {
           "type": "webview",
           "id": "teCopilot.view",

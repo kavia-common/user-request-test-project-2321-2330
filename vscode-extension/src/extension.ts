@@ -30,8 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
   // PUBLIC_INTERFACE
   // Command: Open/focus the TE-Copilot sidebar
   const openCommand = vscode.commands.registerCommand('teCopilot.open', async () => {
-    // Force reveal the view
-    await vscode.commands.executeCommand('workbench.view.extension.teCopilot'); // switch to custom container
+    // Force reveal the view now placed in the secondary sidebar container
+    await vscode.commands.executeCommand('workbench.view.extension.teCopilot');
     await sidebarProvider.reveal();
   });
 

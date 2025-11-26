@@ -109,7 +109,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
    */
   async reveal(): Promise<void> {
     if (!this._view) {
-      // If not yet resolved, trigger reveal by executing the built-in command to focus our container
+      // If not yet resolved, trigger reveal by executing the built-in command to focus our container in secondary sidebar
       await vscode.commands.executeCommand('workbench.view.extension.teCopilot');
       return;
     }
