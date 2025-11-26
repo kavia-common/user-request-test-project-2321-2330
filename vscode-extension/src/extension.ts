@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
 import { getActiveEditorContext } from './context/activeEditorContext';
 import { getWorkspaceContext } from './context/workspaceContext';
+import { ChatService } from './chat/ChatService';
 
 /**
  * PUBLIC_INTERFACE
@@ -11,6 +12,9 @@ import { getWorkspaceContext } from './context/workspaceContext';
  */
 export function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
+
+  // Allow ChatService to access SecretStorage
+  ChatService.attachContext(context);
 
   // Register the webview view for the activity bar container
   const providerDisposable = vscode.window.registerWebviewViewProvider(
@@ -61,7 +65,24 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  context.subscriptions.push(providerDisposable, openCommand, sendSelectionCommand);
+  // PUBLIC_INTERFACE
+  // Command: Set OpenAI API Key (stores in SecretStorage)
+  const setOpenAIKeyCommand = vscode.commands.registerCommand('kaviaChat.setOpenAIKey', async () => {
+    const input = await vscode.window.showInputBox({
+      ignoreFocusOut: true,
+      password: true,
+      placeHolder: 'Enter your OpenAI API Key',
+      prompt: 'Your key will be saved securely in VS Code Secret Storage for this machine.',
+      validateInput: (val) => (val && val.trim().length > 5 ? undefined : 'Please enter a valid key'),
+    });
+    if (!input) {
+      return;
+    }
+    await context.secrets.store('kaviaChat.openai.apiKey', input.trim());
+    vscode.window.showInformationMessage('KAVIA Chat: OpenAI API key saved.');
+  });
+
+  context.subscriptions.push(providerDisposable, openCommand, sendSelectionCommand, setOpenAIKeyCommand);
 }
 
 /**

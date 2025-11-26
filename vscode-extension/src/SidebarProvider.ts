@@ -30,8 +30,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-          // Get model from settings
-          const model = String(vscode.workspace.getConfiguration('kaviaChat').get('kaviaChat.model') || 'gpt-4o-mini');
+          // Get model from settings (OpenAI specific)
+          const model = String(vscode.workspace.getConfiguration('kaviaChat').get('kaviaChat.openai.model') || 'gpt-4o-mini');
           // Start provider streaming via ChatService, merging live context
           this.chat.startStreaming({
             userText,
@@ -220,7 +220,10 @@ function getConfigSnapshot(): Record<string, unknown> {
   const config = vscode.workspace.getConfiguration('kaviaChat');
   return {
     provider: config.get('kaviaChat.provider', 'mock'),
-    model: config.get('kaviaChat.model', 'gpt-4o-mini'),
+    openai: {
+      model: config.get('kaviaChat.openai.model', 'gpt-4o-mini'),
+      baseURL: config.get('kaviaChat.openai.baseURL', 'https://api.openai.com/v1'),
+    },
   };
 }
 

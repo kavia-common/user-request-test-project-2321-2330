@@ -12,6 +12,7 @@ A TypeScript-based scaffold for a VS Code Chat sidebar extension.
 - Commands:
   - `KAVIA Chat: Open Chat` (kaviaChat.open)
   - `KAVIA Chat: Send Selection` (kaviaChat.sendSelection) — adds the current selection to the chat context and notifies in the chat panel
+  - `KAVIA Chat: Set OpenAI API Key` (kaviaChat.setOpenAIKey) — stores your key securely in Secret Storage
 
 ## Running the Extension
 
@@ -28,11 +29,13 @@ A TypeScript-based scaffold for a VS Code Chat sidebar extension.
 - Webview assets in `media/webview/`
 - Build output in `out/`
 
-## Configuration (Placeholders)
+## Configuration
 
 - `kaviaChat.provider`: `mock` | `openai`
-- `kaviaChat.model`: string model id
-- Provider wiring beyond the mock will be implemented in later steps.
+- `kaviaChat.openai.model`: OpenAI model id (e.g., `gpt-4o-mini`)
+- `kaviaChat.openai.baseURL`: Base URL for OpenAI-compatible API (default: `https://api.openai.com/v1`)
+- Secret: `kaviaChat.openai.apiKey` is stored in VS Code Secret Storage when running `KAVIA Chat: Set OpenAI API Key`.
+- Alternatively, you may set environment variable `OPENAI_API_KEY` for the extension host.
 
 ## Notes
 

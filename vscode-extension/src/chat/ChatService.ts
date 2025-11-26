@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { postToWebview } from '../messaging';
 import { MockProvider } from './providers/MockProvider';
+import { OpenAIProvider } from './providers/OpenAIProvider';
 
 /**
  * Types representing a generic chat message and provider interface.
@@ -44,16 +45,57 @@ export class ChatService {
   private provider: ChatProvider;
   private currentCancellation?: vscode.CancellationTokenSource;
   private currentAssistantId?: string;
+  private static extContext: vscode.ExtensionContext | null = null;
 
   private constructor() {
-    // Select provider based on configuration; for now, 'mock' only
+    // Lazy default to mock; will re-evaluate on each startStreaming in case settings changed.
+    this.provider = new MockProvider();
+  }
+
+  /**
+   * Attach extension context for SecretStorage access.
+   */
+  public static attachContext(ctx: vscode.ExtensionContext) {
+    ChatService.extContext = ctx;
+  }
+
+  /**
+   * Initialize provider selection based on current settings and secrets.
+   * If OpenAI is selected but no key is available, fall back to MockProvider and return an error string.
+   */
+  private async initProvider(): Promise<{ error?: string }> {
     const config = vscode.workspace.getConfiguration('kaviaChat');
     const providerId = (config.get<string>('kaviaChat.provider') || 'mock').toLowerCase();
-    switch (providerId) {
-      case 'mock':
-      default:
-        this.provider = new MockProvider();
-        break;
+
+    if (providerId !== 'openai') {
+      this.provider = new MockProvider();
+      return {};
+    }
+
+    // Read key from SecretStorage first, fallback to env var
+    let key: string | undefined;
+    try {
+      key = await ChatService.extContext?.secrets.get('kaviaChat.openai.apiKey');
+    } catch {
+      // ignore
+    }
+    if (!key) {
+      key = process.env.OPENAI_API_KEY;
+    }
+
+    if (!key) {
+      this.provider = new MockProvider();
+      return { error: 'OpenAI API key is not set. Run "KAVIA Chat: Set OpenAI API Key" command or set OPENAI_API_KEY env var.' };
+    }
+
+    const baseURL = config.get<string>('kaviaChat.openai.baseURL') || 'https://api.openai.com/v1';
+    const model = config.get<string>('kaviaChat.openai.model') || 'gpt-4o-mini';
+    try {
+      this.provider = new OpenAIProvider({ apiKey: key, baseURL, model });
+      return {};
+    } catch (e: any) {
+      this.provider = new MockProvider();
+      return { error: e?.message || 'Failed to initialize OpenAI provider' };
     }
   }
 
@@ -91,25 +133,60 @@ export class ChatService {
 
     const messages: ChatMessage[] = [{ role: 'user', content: userText }];
 
-    // Wire provider streaming
-    this.provider.stream(
-      { messages, config, context, model },
-      (delta) => {
-        // Post delta chunk to webview
-        postToWebview(webviewView, { type: 'chat:response', id: assistantId, delta });
-      },
-      () => {
-        // Post done to webview
+    // Initialize provider based on current settings each time
+    this.initProvider().then(({ error }) => {
+      if (error) {
+        // Immediately inform the webview about configuration problem and finish
+        postToWebview(webviewView, { type: 'chat:error', error });
         postToWebview(webviewView, { type: 'chat:response', id: assistantId, done: true });
-        // Clear cancellation state
         if (this.currentCancellation === cts) {
           this.currentCancellation?.dispose();
           this.currentCancellation = undefined;
           this.currentAssistantId = undefined;
         }
-      },
-      cts.token
-    );
+        return;
+      }
+
+      // Decide model: prefer explicit model param; otherwise provider-specific setting for OpenAI
+      const resolvedModel =
+        model ||
+        vscode.workspace.getConfiguration('kaviaChat').get<string>('kaviaChat.openai.model') ||
+        'gpt-4o-mini';
+
+      try {
+        this.provider.stream(
+          { messages, config, context, model: resolvedModel },
+          (delta) => {
+            postToWebview(webviewView, { type: 'chat:response', id: assistantId, delta });
+          },
+          () => {
+            postToWebview(webviewView, { type: 'chat:response', id: assistantId, done: true });
+            if (this.currentCancellation === cts) {
+              this.currentCancellation?.dispose();
+              this.currentCancellation = undefined;
+              this.currentAssistantId = undefined;
+            }
+          },
+          cts.token
+        );
+      } catch (e: any) {
+        postToWebview(webviewView, { type: 'chat:error', error: e?.message || 'Failed to start provider' });
+        postToWebview(webviewView, { type: 'chat:response', id: assistantId, done: true });
+        if (this.currentCancellation === cts) {
+          this.currentCancellation?.dispose();
+          this.currentCancellation = undefined;
+          this.currentAssistantId = undefined;
+        }
+      }
+    }).catch((e: any) => {
+      postToWebview(webviewView, { type: 'chat:error', error: e?.message || 'Failed to initialize provider' });
+      postToWebview(webviewView, { type: 'chat:response', id: assistantId, done: true });
+      if (this.currentCancellation === cts) {
+        this.currentCancellation?.dispose();
+        this.currentCancellation = undefined;
+        this.currentAssistantId = undefined;
+      }
+    });
 
     return assistantId;
   }

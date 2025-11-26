@@ -13,6 +13,7 @@
   "activationEvents": [
     "onCommand:kaviaChat.open",
     "onCommand:kaviaChat.sendSelection",
+    "onCommand:kaviaChat.setOpenAIKey",
     "onView:kaviaChat.view"
   ],
   "main": "./out/extension.js",
@@ -47,6 +48,11 @@
         "command": "kaviaChat.sendSelection",
         "title": "KAVIA Chat: Send Selection",
         "category": "KAVIA Chat"
+      },
+      {
+        "command": "kaviaChat.setOpenAIKey",
+        "title": "KAVIA Chat: Set OpenAI API Key",
+        "category": "KAVIA Chat"
       }
     ],
     "configuration": {
@@ -62,14 +68,21 @@
           ],
           "enumDescriptions": [
             "Use a mock provider (for development)",
-            "Use OpenAI provider (configure API key later)"
+            "Use OpenAI provider (configure API key)"
           ],
-          "description": "Select AI provider to use for chat (wiring added in later steps)."
+          "description": "Select AI provider to use for chat."
         },
-        "kaviaChat.model": {
+        "kaviaChat.openai.model": {
           "type": "string",
           "default": "gpt-4o-mini",
-          "description": "Model identifier for chosen provider (used in later steps)."
+          "description": "OpenAI model identifier (e.g., gpt-4o, gpt-4o-mini, gpt-4.1-mini)."
+        },
+        "kaviaChat.openai.baseURL": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "markdownDescription": "Base URL for OpenAI-compatible API. Useful for proxies or Azure/OpenAI-compatible services.",
+          "pattern": "^https?://.*",
+          "patternErrorMessage": "Must be a valid http(s) URL."
         }
       }
     }
