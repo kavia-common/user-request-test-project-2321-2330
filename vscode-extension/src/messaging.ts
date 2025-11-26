@@ -1,4 +1,4 @@
-/**
+ /**
  * Centralized message types and a simple router for webview <-> extension communication.
  * Includes utility helpers to post messages safely.
  */
@@ -23,7 +23,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'chat:response'; id?: string; delta?: string; text?: string; done?: boolean }
   | { type: 'chat:error'; error?: string }
   | { type: 'config:update'; config: Record<string, unknown> }
-  | { type: 'context:update'; context: Record<string, unknown> };
+  | { type: 'context:update'; context: Record<string, unknown> }
+  | { type: 'chat:sendSelection'; payload: { text: string } };
 
 /**
  * PUBLIC_INTERFACE

@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
+import { getActiveEditorContext } from './context/activeEditorContext';
+import { getWorkspaceContext } from './context/workspaceContext';
 
 /**
  * PUBLIC_INTERFACE
@@ -26,28 +28,37 @@ export function activate(context: vscode.ExtensionContext) {
   const openCommand = vscode.commands.registerCommand('kaviaChat.open', async () => {
     // Force reveal the view
     await vscode.commands.executeCommand('workbench.view.extension.kaviaChat'); // switch to custom container
-    await vscode.commands.executeCommand('workbench.actions.focusContext'); // no-op focus helper
-    await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('command:'), {}); // placeholder
-
-    // Reveal the view by its id
-    await vscode.commands.executeCommand('workbench.view.extension.kaviaChat');
-    await vscode.commands.executeCommand('workbench.view.extension.kaviaChat'); // double-call to ensure on older versions
     await sidebarProvider.reveal();
   });
 
   // PUBLIC_INTERFACE
-  // Command: Send Selection (placeholder)
+  // Command: Send Selection -> updates context and informs the chat panel
   const sendSelectionCommand = vscode.commands.registerCommand('kaviaChat.sendSelection', async () => {
     const editor = vscode.window.activeTextEditor;
     const selectedText = editor?.document.getText(editor.selection) ?? '';
-    // TODO: Wire this to the webview/provider in later steps
-    if (!selectedText) {
+    if (!selectedText.trim()) {
       vscode.window.showInformationMessage('KAVIA Chat: No selection to send.');
       return;
     }
-    vscode.window.showInformationMessage('KAVIA Chat: Selection captured (placeholder).');
-    // In later steps, post message to webview:
-    // sidebarProvider.postMessage({ type: 'chat:sendSelection', payload: selectedText });
+
+    // Ensure the chat view is visible
+    await vscode.commands.executeCommand('kaviaChat.open');
+
+    // Build a fresh context snapshot that includes current selection text
+    const ctx = safeContextSnapshotWithSelection();
+
+    // Post context update first
+    sidebarProvider.postMessage({
+      type: 'context:update',
+      context: ctx
+    });
+
+    // Notify the user inside the chat panel
+    sidebarProvider.postMessage({
+      type: 'chat:response',
+      text: 'Selection sent to chat context. You can reference it in your next message.',
+      done: true
+    });
   });
 
   context.subscriptions.push(providerDisposable, openCommand, sendSelectionCommand);
@@ -60,4 +71,21 @@ export function activate(context: vscode.ExtensionContext) {
  */
 export function deactivate() {
   // No-op for now
+}
+
+/**
+ * Build a fresh context snapshot; ensures selection text is included (with length guard).
+ */
+function safeContextSnapshotWithSelection(): Record<string, unknown> {
+  try {
+    const activeEditor = getActiveEditorContext();
+    const workspace = getWorkspaceContext();
+
+    return {
+      ...workspace,
+      activeEditor
+    };
+  } catch {
+    return {};
+  }
 }

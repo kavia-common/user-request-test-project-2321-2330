@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { ExtensionToWebviewMessage, MessageRouter, WebviewToExtensionMessage, postToWebview } from './messaging';
 import { ChatService } from './chat/ChatService';
+import { getActiveEditorContext } from './context/activeEditorContext';
+import { getWorkspaceContext } from './context/workspaceContext';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewId = 'kaviaChat.view';
@@ -15,9 +17,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       .on('chat:loaded', (_message, webviewView) => {
         // Send initial config/context to webview on load
         const config = getConfigSnapshot();
-        const context = getContextSnapshot();
+        const ctx = getContextSnapshot();
         postToWebview(webviewView, { type: 'config:update', config });
-        postToWebview(webviewView, { type: 'context:update', context });
+        postToWebview(webviewView, { type: 'context:update', context: ctx });
       })
       .on('chat:send', (message, webviewView) => {
         const payload = (message as Extract<WebviewToExtensionMessage, { type: 'chat:send' }>).payload;
@@ -30,11 +32,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         try {
           // Get model from settings
           const model = String(vscode.workspace.getConfiguration('kaviaChat').get('kaviaChat.model') || 'gpt-4o-mini');
-          // Start provider streaming via ChatService
+          // Start provider streaming via ChatService, merging live context
           this.chat.startStreaming({
             userText,
             config: payload?.config,
-            context: payload?.context,
+            context: { ...(payload?.context ?? {}), ...getContextSnapshot() },
             model,
             webviewView: this._view,
           });
@@ -43,7 +45,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           postToWebview(webviewView, { type: 'chat:error', error: 'Failed to start chat' });
         }
       })
-      .on('chat:stop', (_message, webviewView) => {
+      .on('chat:stop', (_message, _webviewView) => {
         // Signal cancellation to provider via ChatService
         this.chat.stop(this._view);
       })
@@ -51,6 +53,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         // Open extension settings scoped to this extension
         vscode.commands.executeCommand('workbench.action.openSettings', '@ext:your-publisher.kavia-chat');
       });
+
+    // Listen to editor/workspace events and emit context updates to webview
+    context.subscriptions.push(
+      vscode.window.onDidChangeActiveTextEditor(() => this.emitContextUpdate()),
+      vscode.window.onDidChangeTextEditorSelection(() => this.emitContextUpdate()),
+      vscode.window.onDidChangeVisibleTextEditors(() => this.emitContextUpdate()),
+      vscode.workspace.onDidChangeWorkspaceFolders(() => this.emitContextUpdate())
+    );
   }
 
   resolveWebviewView(
@@ -180,6 +190,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   postMessage(message: ExtensionToWebviewMessage) {
     this._view?.webview.postMessage(message);
   }
+
+  /**
+   * Emit a fresh context snapshot to the webview.
+   */
+  private emitContextUpdate() {
+    const ctx = getContextSnapshot();
+    postToWebview(this._view, { type: 'context:update', context: ctx });
+  }
 }
 
 /**
@@ -207,12 +225,11 @@ function getConfigSnapshot(): Record<string, unknown> {
 }
 
 /**
- * Return a snapshot of context data (e.g., workspace info) to the webview.
+ * Return a snapshot of context data (workspace + active editor) to the webview.
  */
 function getContextSnapshot(): Record<string, unknown> {
-  const folders = vscode.workspace.workspaceFolders?.map(f => f.name) ?? [];
   return {
-    workspaceFolders: folders,
-    vscodeVersion: vscode.version,
+    ...getWorkspaceContext(),
+    activeEditor: getActiveEditorContext(),
   };
 }

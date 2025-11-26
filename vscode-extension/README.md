@@ -6,9 +6,12 @@ A TypeScript-based scaffold for a VS Code Chat sidebar extension.
 
 - Activity Bar container "KAVIA" with a "Chat" view
 - Secure Webview with CSP and nonce
+- Live context gathering from:
+  - Active editor (file name, language, selection, cursor, visible range)
+  - Workspace (folders and open editors)
 - Commands:
   - `KAVIA Chat: Open Chat` (kaviaChat.open)
-  - `KAVIA Chat: Send Selection` (kaviaChat.sendSelection)
+  - `KAVIA Chat: Send Selection` (kaviaChat.sendSelection) — adds the current selection to the chat context and notifies in the chat panel
 
 ## Running the Extension
 
@@ -29,12 +32,17 @@ A TypeScript-based scaffold for a VS Code Chat sidebar extension.
 
 - `kaviaChat.provider`: `mock` | `openai`
 - `kaviaChat.model`: string model id
-- Wiring to providers and messaging will be implemented in later steps.
+- Provider wiring beyond the mock will be implemented in later steps.
 
 ## Notes
 
 - Webview assets are referenced using `webview.asWebviewUri` and protected by a strict CSP with a script nonce.
 - Commands are registered and disposed via `context.subscriptions`.
+- The extension emits `context:update` messages to the webview on:
+  - Active editor changes
+  - Selection changes
+  - Visible editors list changes
+  - Workspace folder changes
 
 ## License
 
